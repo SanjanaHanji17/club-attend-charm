@@ -57,9 +57,6 @@ function LoginPage() {
           </p>
         </div>
 
-        <p className="text-[11px] text-center text-muted-foreground/80 mt-4">
-          Demo: USN <span className="font-mono">1MS22CS001</span> / pwd <span className="font-mono">demo123</span> · Admin code <span className="font-mono">admin123</span>
-        </p>
       </div>
     </div>
   );
@@ -98,7 +95,7 @@ function StudentLogin() {
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="usn">USN</Label>
-        <Input id="usn" value={usn} onChange={(e) => setUsn(e.target.value)} placeholder="1MS22CS001" className="glass" required />
+        <Input id="usn" value={usn} onChange={(e) => setUsn(e.target.value)} placeholder="Your USN" className="glass" required />
       </div>
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
@@ -136,7 +133,7 @@ function AdminLogin() {
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="ac">Admin Registration Code</Label>
-        <Input id="ac" value={code} onChange={(e) => setCode(e.target.value)} placeholder="admin123" className="glass" required />
+        <Input id="ac" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Your admin code" className="glass" required />
       </div>
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
