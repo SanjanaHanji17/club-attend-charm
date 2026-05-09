@@ -65,6 +65,9 @@ function Page() {
         </Dialog>
       </div>
       <div className="grid md:grid-cols-2 gap-4">
+        {data.sessions.length === 0 && (
+          <p className="text-sm text-muted-foreground md:col-span-2 text-center py-10">No sessions added yet</p>
+        )}
         {data.sessions.map((s, i) => (
           <Card key={s.id} className="glass border-border/50 hover-lift animate-fade-in-up" style={{ animationDelay: `${i * 50}ms` }}>
             <CardContent className="p-5">

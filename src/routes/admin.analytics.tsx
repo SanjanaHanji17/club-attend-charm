@@ -38,29 +38,37 @@ function Page() {
         <Card className="glass border-border/50 animate-fade-in-up">
           <CardHeader><CardTitle className="text-base">Per-student attendance %</CardTitle></CardHeader>
           <CardContent className="h-80">
-            <ResponsiveContainer>
-              <RadarChart data={perStudent}>
-                <PolarGrid stroke="oklch(1 0 0 / 12%)" />
-                <PolarAngleAxis dataKey="name" stroke="oklch(0.7 0.03 270)" fontSize={11} />
-                <PolarRadiusAxis stroke="oklch(0.7 0.03 270)" fontSize={10} />
-                <Radar dataKey="pct" stroke="oklch(0.72 0.19 295)" fill="oklch(0.72 0.19 295)" fillOpacity={0.4} />
-              </RadarChart>
-            </ResponsiveContainer>
+            {perStudent.length === 0 ? (
+              <div className="h-full grid place-items-center text-sm text-muted-foreground">No students registered yet</div>
+            ) : (
+              <ResponsiveContainer>
+                <RadarChart data={perStudent}>
+                  <PolarGrid stroke="oklch(1 0 0 / 12%)" />
+                  <PolarAngleAxis dataKey="name" stroke="oklch(0.7 0.03 270)" fontSize={11} />
+                  <PolarRadiusAxis stroke="oklch(0.7 0.03 270)" fontSize={10} />
+                  <Radar dataKey="pct" stroke="oklch(0.72 0.19 295)" fill="oklch(0.72 0.19 295)" fillOpacity={0.4} />
+                </RadarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
         <Card className="glass border-border/50 animate-fade-in-up">
           <CardHeader><CardTitle className="text-base">Attendance trend (% per session)</CardTitle></CardHeader>
           <CardContent className="h-80">
-            <ResponsiveContainer>
-              <LineChart data={trend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 8%)" />
-                <XAxis dataKey="name" stroke="oklch(0.7 0.03 270)" fontSize={11} />
-                <YAxis stroke="oklch(0.7 0.03 270)" fontSize={11} domain={[0, 100]} />
-                <Tooltip contentStyle={{ background: "oklch(0.18 0.03 270)", border: "1px solid oklch(1 0 0 / 12%)", borderRadius: 12 }} />
-                <Legend />
-                <Line type="monotone" dataKey="pct" stroke="oklch(0.7 0.18 200)" strokeWidth={3} dot={{ r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
+            {trend.length === 0 ? (
+              <div className="h-full grid place-items-center text-sm text-muted-foreground">No sessions added yet</div>
+            ) : (
+              <ResponsiveContainer>
+                <LineChart data={trend}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 8%)" />
+                  <XAxis dataKey="name" stroke="oklch(0.7 0.03 270)" fontSize={11} />
+                  <YAxis stroke="oklch(0.7 0.03 270)" fontSize={11} domain={[0, 100]} />
+                  <Tooltip contentStyle={{ background: "oklch(0.18 0.03 270)", border: "1px solid oklch(1 0 0 / 12%)", borderRadius: 12 }} />
+                  <Legend />
+                  <Line type="monotone" dataKey="pct" stroke="oklch(0.7 0.18 200)" strokeWidth={3} dot={{ r: 4 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </div>
