@@ -5,7 +5,7 @@ import { useAuth, useDB, Student } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, CheckCircle2, Flame, TrendingUp, Sparkles } from "lucide-react";
+import { CalendarDays, CheckCircle2, Flame, TrendingUp, Sparkles, Inbox } from "lucide-react";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
   PieChart, Pie, Cell, BarChart, Bar,
@@ -15,14 +15,51 @@ export const Route = createFileRoute("/student/dashboard")({
   component: () => <AuthGate role="student"><DashShell><Page /></DashShell></AuthGate>,
 });
 
+function StatCard({
+  icon: Icon, label, value, color, delay,
+}: { icon: any; label: string; value: string | number; color: string; delay: number }) {
+  return (
+    <Card className="glass border-border/50 hover-lift animate-fade-in-up" style={{ animationDelay: `${delay}ms` }}>
+      <CardContent className="p-5">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground uppercase tracking-wider">{label}</span>
+          <Icon className={`w-4 h-4 ${color}`} />
+        </div>
+        <p className="text-3xl font-bold mt-2">{value}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="h-full grid place-items-center text-sm text-muted-foreground gap-2">
+      <Inbox className="w-6 h-6 opacity-60" />
+      <span>{message}</span>
+    </div>
+  );
+}
+
+function streak(records: { sessionId: string; present: boolean }[], orderedIds: string[]) {
+  let s = 0;
+  for (let i = orderedIds.length - 1; i >= 0; i--) {
+    const r = records.find((x) => x.sessionId === orderedIds[i]);
+    if (r?.present) s++;
+    else break;
+  }
+  return s;
+}
+
 function Page() {
   const { user } = useAuth();
   const student = user as Student;
   const data = useDB((d) => d);
+
   const myAttendance = data.attendance.filter((a) => a.studentId === student.id);
-  const total = data.sessions.length;
+  const totalSessions = data.sessions.length;
   const attended = myAttendance.filter((a) => a.present).length;
-  const percent = total ? Math.round((attended / total) * 100) : 0;
+  const attendancePct = totalSessions > 0 ? Math.round((attended / totalSessions) * 100) : 0;
+  const currentStreak = totalSessions > 0 ? streak(myAttendance, data.sessions.map((s) => s.id)) : 0;
 
   const trend = data.sessions.map((s, i) => {
     const upTo = data.sessions.slice(0, i + 1);
@@ -30,27 +67,32 @@ function Page() {
     return { name: s.title.slice(0, 8), value: Math.round((att / (i + 1)) * 100) };
   });
 
-  const pie = [
-    { name: "Attended", value: attended },
-    { name: "Missed", value: total - attended },
-  ];
+  const pie = totalSessions > 0
+    ? [
+        { name: "Attended", value: attended },
+        { name: "Missed", value: totalSessions - attended },
+      ]
+    : [];
   const COLORS = ["oklch(0.72 0.19 295)", "oklch(0.27 0.04 270)"];
 
   const myAssignments = data.assignments.map((a) => ({
     ...a,
     submitted: !!data.submissions.find((s) => s.assignmentId === a.id && s.studentId === student.id),
   }));
+  const submittedCount = myAssignments.filter((a) => a.submitted).length;
+  const pendingCount = myAssignments.length - submittedCount;
 
   return (
     <div className="space-y-6 max-w-7xl">
-      {/* Welcome banner */}
       <div className="glass-strong rounded-3xl p-6 md:p-8 relative overflow-hidden animate-fade-in-up">
         <div className="absolute -top-12 -right-12 w-60 h-60 rounded-full gradient-aurora opacity-30 blur-3xl" />
         <div className="relative flex items-start justify-between flex-wrap gap-4">
           <div>
-            <p className="text-xs uppercase tracking-widest text-primary flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Welcome back</p>
+            <p className="text-xs uppercase tracking-widest text-primary flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" /> Welcome back
+            </p>
             <h1 className="text-3xl md:text-4xl font-bold mt-1">Hi, {student.fullName.split(" ")[0]} 👋</h1>
-            <p className="text-muted-foreground mt-2 max-w-xl">Here's a snapshot of your coding club journey. Keep the streak going!</p>
+            <p className="text-muted-foreground mt-2 max-w-xl">Your live coding club journey.</p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="glass">{student.department}</Badge>
@@ -59,36 +101,19 @@ function Page() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { icon: CheckCircle2, label: "Attended", value: attended, color: "text-success" },
-          { icon: CalendarDays, label: "Total Sessions", value: total, color: "text-primary" },
-          { icon: TrendingUp, label: "Attendance %", value: `${percent}%`, color: "text-accent" },
-          { icon: Flame, label: "Current Streak", value: streak(myAttendance, data.sessions.map((s) => s.id)), color: "text-warning" },
-        ].map((s, i) => {
-          const Icon = s.icon;
-          return (
-            <Card key={i} className="glass border-border/50 hover-lift animate-fade-in-up" style={{ animationDelay: `${i * 60}ms` }}>
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{s.label}</span>
-                  <Icon className={`w-4 h-4 ${s.color}`} />
-                </div>
-                <p className="text-3xl font-bold mt-2">{s.value}</p>
-              </CardContent>
-            </Card>
-          );
-        })}
+        <StatCard icon={CheckCircle2} label="Attended" value={attended} color="text-success" delay={0} />
+        <StatCard icon={CalendarDays} label="Total Sessions" value={totalSessions} color="text-primary" delay={60} />
+        <StatCard icon={TrendingUp} label="Attendance %" value={`${attendancePct}%`} color="text-accent" delay={120} />
+        <StatCard icon={Flame} label="Current Streak" value={currentStreak} color="text-warning" delay={180} />
       </div>
 
-      {/* Charts */}
       <div className="grid lg:grid-cols-3 gap-4">
         <Card className="glass border-border/50 lg:col-span-2 animate-fade-in-up">
           <CardHeader><CardTitle className="text-base">Attendance Trend</CardTitle></CardHeader>
           <CardContent className="h-72">
-            {total === 0 ? (
-              <div className="h-full grid place-items-center text-sm text-muted-foreground">Attendance data not available</div>
+            {trend.length === 0 ? (
+              <EmptyState message="No attendance records found" />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trend}>
@@ -111,8 +136,8 @@ function Page() {
         <Card className="glass border-border/50 animate-fade-in-up">
           <CardHeader><CardTitle className="text-base">Attendance Split</CardTitle></CardHeader>
           <CardContent className="h-72">
-            {total === 0 ? (
-              <div className="h-full grid place-items-center text-sm text-muted-foreground">No sessions added yet</div>
+            {pie.length === 0 ? (
+              <EmptyState message="No sessions available" />
             ) : (
               <>
                 <ResponsiveContainer width="100%" height="100%">
@@ -133,18 +158,21 @@ function Page() {
         </Card>
       </div>
 
-      {/* Progress + assignments preview */}
       <div className="grid lg:grid-cols-2 gap-4">
         <Card className="glass border-border/50 animate-fade-in-up">
           <CardHeader><CardTitle className="text-base">Overall progress</CardTitle></CardHeader>
           <CardContent>
             <div className="flex items-end justify-between mb-2">
               <span className="text-sm text-muted-foreground">Attendance</span>
-              <span className="text-2xl font-bold gradient-text">{percent}%</span>
+              <span className="text-2xl font-bold gradient-text">{attendancePct}%</span>
             </div>
-            <Progress value={percent} className="h-3" />
+            <Progress value={attendancePct} className="h-3" />
             <p className="text-xs text-muted-foreground mt-3">
-              {percent >= 75 ? "Excellent — you're on track!" : "Boost it past 75% by attending the next sessions."}
+              {totalSessions === 0
+                ? "No sessions available yet."
+                : attendancePct >= 75
+                ? "Excellent — you're on track!"
+                : "Boost it past 75% by attending the next sessions."}
             </p>
           </CardContent>
         </Card>
@@ -152,12 +180,12 @@ function Page() {
           <CardHeader><CardTitle className="text-base">Assignments at a glance</CardTitle></CardHeader>
           <CardContent className="h-48">
             {myAssignments.length === 0 ? (
-              <div className="h-full grid place-items-center text-sm text-muted-foreground">No assignments available</div>
+              <EmptyState message="No assignments uploaded" />
             ) : (
               <ResponsiveContainer>
                 <BarChart data={[
-                  { name: "Submitted", value: myAssignments.filter((a) => a.submitted).length },
-                  { name: "Pending", value: myAssignments.filter((a) => !a.submitted).length },
+                  { name: "Submitted", value: submittedCount },
+                  { name: "Pending", value: pendingCount },
                 ]}>
                   <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 8%)" />
                   <XAxis dataKey="name" stroke="oklch(0.7 0.03 270)" fontSize={11} />
@@ -172,13 +200,4 @@ function Page() {
       </div>
     </div>
   );
-}
-
-function streak(records: { sessionId: string; present: boolean }[], orderedIds: string[]) {
-  let s = 0;
-  for (let i = orderedIds.length - 1; i >= 0; i--) {
-    const r = records.find((x) => x.sessionId === orderedIds[i]);
-    if (r?.present) s++; else break;
-  }
-  return s;
 }
