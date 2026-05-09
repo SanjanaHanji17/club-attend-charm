@@ -17,6 +17,13 @@ import { Route as StudentProfileRouteImport } from './routes/student.profile'
 import { Route as StudentDiscussionRouteImport } from './routes/student.discussion'
 import { Route as StudentDashboardRouteImport } from './routes/student.dashboard'
 import { Route as StudentAssignmentsRouteImport } from './routes/student.assignments'
+import { Route as AdminStudentsRouteImport } from './routes/admin.students'
+import { Route as AdminSessionsRouteImport } from './routes/admin.sessions'
+import { Route as AdminDiscussionRouteImport } from './routes/admin.discussion'
+import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
+import { Route as AdminAttendanceRouteImport } from './routes/admin.attendance'
+import { Route as AdminAssignmentsRouteImport } from './routes/admin.assignments'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -58,11 +65,53 @@ const StudentAssignmentsRoute = StudentAssignmentsRouteImport.update({
   path: '/student/assignments',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminStudentsRoute = AdminStudentsRouteImport.update({
+  id: '/admin/students',
+  path: '/admin/students',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSessionsRoute = AdminSessionsRouteImport.update({
+  id: '/admin/sessions',
+  path: '/admin/sessions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDiscussionRoute = AdminDiscussionRouteImport.update({
+  id: '/admin/discussion',
+  path: '/admin/discussion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAttendanceRoute = AdminAttendanceRouteImport.update({
+  id: '/admin/attendance',
+  path: '/admin/attendance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAssignmentsRoute = AdminAssignmentsRouteImport.update({
+  id: '/admin/assignments',
+  path: '/admin/assignments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/admin/analytics',
+  path: '/admin/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/assignments': typeof AdminAssignmentsRoute
+  '/admin/attendance': typeof AdminAttendanceRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/discussion': typeof AdminDiscussionRoute
+  '/admin/sessions': typeof AdminSessionsRoute
+  '/admin/students': typeof AdminStudentsRoute
   '/student/assignments': typeof StudentAssignmentsRoute
   '/student/dashboard': typeof StudentDashboardRoute
   '/student/discussion': typeof StudentDiscussionRoute
@@ -73,6 +122,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/assignments': typeof AdminAssignmentsRoute
+  '/admin/attendance': typeof AdminAttendanceRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/discussion': typeof AdminDiscussionRoute
+  '/admin/sessions': typeof AdminSessionsRoute
+  '/admin/students': typeof AdminStudentsRoute
   '/student/assignments': typeof StudentAssignmentsRoute
   '/student/dashboard': typeof StudentDashboardRoute
   '/student/discussion': typeof StudentDiscussionRoute
@@ -84,6 +140,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/assignments': typeof AdminAssignmentsRoute
+  '/admin/attendance': typeof AdminAttendanceRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/discussion': typeof AdminDiscussionRoute
+  '/admin/sessions': typeof AdminSessionsRoute
+  '/admin/students': typeof AdminStudentsRoute
   '/student/assignments': typeof StudentAssignmentsRoute
   '/student/dashboard': typeof StudentDashboardRoute
   '/student/discussion': typeof StudentDiscussionRoute
@@ -96,6 +159,13 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/register'
+    | '/admin/analytics'
+    | '/admin/assignments'
+    | '/admin/attendance'
+    | '/admin/dashboard'
+    | '/admin/discussion'
+    | '/admin/sessions'
+    | '/admin/students'
     | '/student/assignments'
     | '/student/dashboard'
     | '/student/discussion'
@@ -106,6 +176,13 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/register'
+    | '/admin/analytics'
+    | '/admin/assignments'
+    | '/admin/attendance'
+    | '/admin/dashboard'
+    | '/admin/discussion'
+    | '/admin/sessions'
+    | '/admin/students'
     | '/student/assignments'
     | '/student/dashboard'
     | '/student/discussion'
@@ -116,6 +193,13 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/register'
+    | '/admin/analytics'
+    | '/admin/assignments'
+    | '/admin/attendance'
+    | '/admin/dashboard'
+    | '/admin/discussion'
+    | '/admin/sessions'
+    | '/admin/students'
     | '/student/assignments'
     | '/student/dashboard'
     | '/student/discussion'
@@ -127,6 +211,13 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminAssignmentsRoute: typeof AdminAssignmentsRoute
+  AdminAttendanceRoute: typeof AdminAttendanceRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminDiscussionRoute: typeof AdminDiscussionRoute
+  AdminSessionsRoute: typeof AdminSessionsRoute
+  AdminStudentsRoute: typeof AdminStudentsRoute
   StudentAssignmentsRoute: typeof StudentAssignmentsRoute
   StudentDashboardRoute: typeof StudentDashboardRoute
   StudentDiscussionRoute: typeof StudentDiscussionRoute
@@ -192,6 +283,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentAssignmentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/students': {
+      id: '/admin/students'
+      path: '/admin/students'
+      fullPath: '/admin/students'
+      preLoaderRoute: typeof AdminStudentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/sessions': {
+      id: '/admin/sessions'
+      path: '/admin/sessions'
+      fullPath: '/admin/sessions'
+      preLoaderRoute: typeof AdminSessionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/discussion': {
+      id: '/admin/discussion'
+      path: '/admin/discussion'
+      fullPath: '/admin/discussion'
+      preLoaderRoute: typeof AdminDiscussionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/attendance': {
+      id: '/admin/attendance'
+      path: '/admin/attendance'
+      fullPath: '/admin/attendance'
+      preLoaderRoute: typeof AdminAttendanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/assignments': {
+      id: '/admin/assignments'
+      path: '/admin/assignments'
+      fullPath: '/admin/assignments'
+      preLoaderRoute: typeof AdminAssignmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/admin/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -199,6 +339,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminAssignmentsRoute: AdminAssignmentsRoute,
+  AdminAttendanceRoute: AdminAttendanceRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
+  AdminDiscussionRoute: AdminDiscussionRoute,
+  AdminSessionsRoute: AdminSessionsRoute,
+  AdminStudentsRoute: AdminStudentsRoute,
   StudentAssignmentsRoute: StudentAssignmentsRoute,
   StudentDashboardRoute: StudentDashboardRoute,
   StudentDiscussionRoute: StudentDiscussionRoute,
