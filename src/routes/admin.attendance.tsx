@@ -85,8 +85,14 @@ function Page() {
         </div>
       )}
 
+      {data.sessions.length === 0 && (
+        <p className="text-sm text-muted-foreground text-center py-10">No sessions added yet</p>
+      )}
+      {data.sessions.length > 0 && data.students.length === 0 && (
+        <p className="text-sm text-muted-foreground text-center py-10">No students registered yet</p>
+      )}
       <div className="grid md:grid-cols-2 gap-3">
-        {list.map((s, i) => {
+        {data.sessions.length > 0 && list.map((s, i) => {
           const att = data.attendance.find((a) => a.sessionId === sessionId && a.studentId === s.id);
           const present = att?.present ?? false;
           return (

@@ -58,6 +58,9 @@ function Page() {
         </Dialog>
       </div>
 
+      {data.assignments.length === 0 && (
+        <p className="text-sm text-muted-foreground text-center py-10">No assignments available</p>
+      )}
       <div className="grid md:grid-cols-2 gap-4">
         {data.assignments.map((a, i) => {
           const submitted = data.submissions.filter((s) => s.assignmentId === a.id).length;

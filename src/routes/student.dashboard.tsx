@@ -87,38 +87,48 @@ function Page() {
         <Card className="glass border-border/50 lg:col-span-2 animate-fade-in-up">
           <CardHeader><CardTitle className="text-base">Attendance Trend</CardTitle></CardHeader>
           <CardContent className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trend}>
-                <defs>
-                  <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="oklch(0.72 0.19 295)" />
-                    <stop offset="100%" stopColor="oklch(0.7 0.18 200)" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 8%)" />
-                <XAxis dataKey="name" stroke="oklch(0.7 0.03 270)" fontSize={11} />
-                <YAxis stroke="oklch(0.7 0.03 270)" fontSize={11} domain={[0, 100]} />
-                <Tooltip contentStyle={{ background: "oklch(0.18 0.03 270)", border: "1px solid oklch(1 0 0 / 12%)", borderRadius: 12 }} />
-                <Line type="monotone" dataKey="value" stroke="url(#g)" strokeWidth={3} dot={{ r: 4, fill: "oklch(0.72 0.19 295)" }} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ResponsiveContainer>
+            {total === 0 ? (
+              <div className="h-full grid place-items-center text-sm text-muted-foreground">Attendance data not available</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trend}>
+                  <defs>
+                    <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="oklch(0.72 0.19 295)" />
+                      <stop offset="100%" stopColor="oklch(0.7 0.18 200)" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 8%)" />
+                  <XAxis dataKey="name" stroke="oklch(0.7 0.03 270)" fontSize={11} />
+                  <YAxis stroke="oklch(0.7 0.03 270)" fontSize={11} domain={[0, 100]} />
+                  <Tooltip contentStyle={{ background: "oklch(0.18 0.03 270)", border: "1px solid oklch(1 0 0 / 12%)", borderRadius: 12 }} />
+                  <Line type="monotone" dataKey="value" stroke="url(#g)" strokeWidth={3} dot={{ r: 4, fill: "oklch(0.72 0.19 295)" }} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
         <Card className="glass border-border/50 animate-fade-in-up">
           <CardHeader><CardTitle className="text-base">Attendance Split</CardTitle></CardHeader>
           <CardContent className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={pie} dataKey="value" innerRadius={50} outerRadius={80} paddingAngle={4} stroke="none">
-                  {pie.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
-                </Pie>
-                <Tooltip contentStyle={{ background: "oklch(0.18 0.03 270)", border: "1px solid oklch(1 0 0 / 12%)", borderRadius: 12 }} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex items-center justify-center gap-4 text-xs -mt-6">
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS[0] }} /> Attended</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS[1] }} /> Missed</span>
-            </div>
+            {total === 0 ? (
+              <div className="h-full grid place-items-center text-sm text-muted-foreground">No sessions added yet</div>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={pie} dataKey="value" innerRadius={50} outerRadius={80} paddingAngle={4} stroke="none">
+                      {pie.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: "oklch(0.18 0.03 270)", border: "1px solid oklch(1 0 0 / 12%)", borderRadius: 12 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex items-center justify-center gap-4 text-xs -mt-6">
+                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS[0] }} /> Attended</span>
+                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS[1] }} /> Missed</span>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -141,18 +151,22 @@ function Page() {
         <Card className="glass border-border/50 animate-fade-in-up">
           <CardHeader><CardTitle className="text-base">Assignments at a glance</CardTitle></CardHeader>
           <CardContent className="h-48">
-            <ResponsiveContainer>
-              <BarChart data={[
-                { name: "Submitted", value: myAssignments.filter((a) => a.submitted).length },
-                { name: "Pending", value: myAssignments.filter((a) => !a.submitted).length },
-              ]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 8%)" />
-                <XAxis dataKey="name" stroke="oklch(0.7 0.03 270)" fontSize={11} />
-                <YAxis stroke="oklch(0.7 0.03 270)" fontSize={11} allowDecimals={false} />
-                <Tooltip contentStyle={{ background: "oklch(0.18 0.03 270)", border: "1px solid oklch(1 0 0 / 12%)", borderRadius: 12 }} />
-                <Bar dataKey="value" fill="oklch(0.72 0.19 295)" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {myAssignments.length === 0 ? (
+              <div className="h-full grid place-items-center text-sm text-muted-foreground">No assignments available</div>
+            ) : (
+              <ResponsiveContainer>
+                <BarChart data={[
+                  { name: "Submitted", value: myAssignments.filter((a) => a.submitted).length },
+                  { name: "Pending", value: myAssignments.filter((a) => !a.submitted).length },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 8%)" />
+                  <XAxis dataKey="name" stroke="oklch(0.7 0.03 270)" fontSize={11} />
+                  <YAxis stroke="oklch(0.7 0.03 270)" fontSize={11} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: "oklch(0.18 0.03 270)", border: "1px solid oklch(1 0 0 / 12%)", borderRadius: 12 }} />
+                  <Bar dataKey="value" fill="oklch(0.72 0.19 295)" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </div>

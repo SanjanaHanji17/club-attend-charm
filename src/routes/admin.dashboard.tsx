@@ -74,35 +74,43 @@ function Page() {
         <Card className="glass border-border/50 lg:col-span-2 animate-fade-in-up">
           <CardHeader><CardTitle className="text-base">Attendance per session</CardTitle></CardHeader>
           <CardContent className="h-72">
-            <ResponsiveContainer>
-              <AreaChart data={sessionAttendance}>
-                <defs>
-                  <linearGradient id="aa" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="oklch(0.72 0.19 295)" stopOpacity={0.7} />
-                    <stop offset="100%" stopColor="oklch(0.72 0.19 295)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 8%)" />
-                <XAxis dataKey="name" stroke="oklch(0.7 0.03 270)" fontSize={11} />
-                <YAxis stroke="oklch(0.7 0.03 270)" fontSize={11} allowDecimals={false} />
-                <Tooltip contentStyle={{ background: "oklch(0.18 0.03 270)", border: "1px solid oklch(1 0 0 / 12%)", borderRadius: 12 }} />
-                <Area type="monotone" dataKey="present" stroke="oklch(0.72 0.19 295)" strokeWidth={3} fill="url(#aa)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {sessionAttendance.length === 0 ? (
+              <div className="h-full grid place-items-center text-sm text-muted-foreground">No sessions added yet</div>
+            ) : (
+              <ResponsiveContainer>
+                <AreaChart data={sessionAttendance}>
+                  <defs>
+                    <linearGradient id="aa" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="oklch(0.72 0.19 295)" stopOpacity={0.7} />
+                      <stop offset="100%" stopColor="oklch(0.72 0.19 295)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 8%)" />
+                  <XAxis dataKey="name" stroke="oklch(0.7 0.03 270)" fontSize={11} />
+                  <YAxis stroke="oklch(0.7 0.03 270)" fontSize={11} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: "oklch(0.18 0.03 270)", border: "1px solid oklch(1 0 0 / 12%)", borderRadius: 12 }} />
+                  <Area type="monotone" dataKey="present" stroke="oklch(0.72 0.19 295)" strokeWidth={3} fill="url(#aa)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
         <Card className="glass border-border/50 animate-fade-in-up">
           <CardHeader><CardTitle className="text-base">Students by department</CardTitle></CardHeader>
           <CardContent className="h-72">
-            <ResponsiveContainer>
-              <BarChart data={deptStats}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 8%)" />
-                <XAxis dataKey="name" stroke="oklch(0.7 0.03 270)" fontSize={11} />
-                <YAxis stroke="oklch(0.7 0.03 270)" fontSize={11} allowDecimals={false} />
-                <Tooltip contentStyle={{ background: "oklch(0.18 0.03 270)", border: "1px solid oklch(1 0 0 / 12%)", borderRadius: 12 }} />
-                <Bar dataKey="value" fill="oklch(0.7 0.18 200)" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {deptStats.length === 0 ? (
+              <div className="h-full grid place-items-center text-sm text-muted-foreground">No students registered yet</div>
+            ) : (
+              <ResponsiveContainer>
+                <BarChart data={deptStats}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 8%)" />
+                  <XAxis dataKey="name" stroke="oklch(0.7 0.03 270)" fontSize={11} />
+                  <YAxis stroke="oklch(0.7 0.03 270)" fontSize={11} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: "oklch(0.18 0.03 270)", border: "1px solid oklch(1 0 0 / 12%)", borderRadius: 12 }} />
+                  <Bar dataKey="value" fill="oklch(0.7 0.18 200)" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -110,6 +118,9 @@ function Page() {
       <Card className="glass border-border/50 animate-fade-in-up">
         <CardHeader><CardTitle className="text-base">Recent sessions</CardTitle></CardHeader>
         <CardContent className="grid md:grid-cols-2 gap-3">
+          {data.sessions.length === 0 && (
+            <p className="text-sm text-muted-foreground md:col-span-2 text-center py-6">No sessions added yet</p>
+          )}
           {data.sessions.slice(0, 4).map((s) => (
             <div key={s.id} className="glass rounded-xl p-4">
               <div className="flex items-center justify-between">
