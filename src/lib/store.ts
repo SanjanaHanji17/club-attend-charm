@@ -70,50 +70,18 @@ interface DB {
   comments: Comment[];
 }
 
-const KEY = "cc_attendance_db_v1";
+const KEY = "cc_attendance_db_v2";
 const SESSION_KEY = "cc_attendance_session_v1";
 
+// Empty initial database. All data must be created by registration / admin actions.
 const seed = (): DB => ({
-  students: [
-    { id: "s1", fullName: "Aarav Sharma", usn: "1MS22CS001", department: "CSE", year: "3rd", phone: "9000000001", password: "demo123" },
-    { id: "s2", fullName: "Diya Patel", usn: "1MS22CS002", department: "CSE", year: "3rd", phone: "9000000002", password: "demo123" },
-    { id: "s3", fullName: "Rohan Iyer", usn: "1MS22IS010", department: "ISE", year: "3rd", phone: "9000000003", password: "demo123" },
-    { id: "s4", fullName: "Meera Reddy", usn: "1MS22EC020", department: "ECE", year: "2nd", phone: "9000000004", password: "demo123" },
-  ],
-  admins: [
-    { id: "a1", fullName: "Volunteer Lead", adminCode: "admin123", usn: "1MS21CS099", year: "4th", department: "CSE", phone: "9999999999", password: "admin123" },
-  ],
-  sessions: [
-    { id: "ss1", title: "Intro to DSA", date: "2025-09-12", host: "Coding Club", resourcePerson: "Prof. Anita Rao", description: "Foundations of arrays, recursion and complexity analysis." },
-    { id: "ss2", title: "Competitive Programming Bootcamp", date: "2025-09-26", host: "Coding Club", resourcePerson: "Karthik N.", description: "Greedy, two pointers, and sliding window patterns." },
-    { id: "ss3", title: "Web Dev with React", date: "2025-10-10", host: "Coding Club", resourcePerson: "Sneha M.", description: "Hands-on React, hooks, state management." },
-    { id: "ss4", title: "AI/ML Hackathon Prep", date: "2025-10-24", host: "Coding Club", resourcePerson: "Dr. Kiran V.", description: "Building rapid ML prototypes with Python." },
-    { id: "ss5", title: "System Design 101", date: "2025-11-07", host: "Coding Club", resourcePerson: "Arjun B.", description: "Scalability, caching and load balancing fundamentals." },
-  ],
-  attendance: [
-    { sessionId: "ss1", studentId: "s1", present: true },
-    { sessionId: "ss1", studentId: "s2", present: true },
-    { sessionId: "ss1", studentId: "s3", present: false },
-    { sessionId: "ss2", studentId: "s1", present: true },
-    { sessionId: "ss2", studentId: "s2", present: false },
-    { sessionId: "ss2", studentId: "s3", present: true },
-    { sessionId: "ss3", studentId: "s1", present: true },
-    { sessionId: "ss3", studentId: "s2", present: true },
-    { sessionId: "ss4", studentId: "s1", present: false },
-  ],
-  assignments: [
-    { id: "as1", title: "Two Sum & Variants", description: "Solve 5 problems on hashing patterns.", dueDate: "2025-10-20", createdAt: "2025-10-01" },
-    { id: "as2", title: "Build a To-Do app in React", description: "Use hooks and localStorage.", dueDate: "2025-11-01", createdAt: "2025-10-12" },
-    { id: "as3", title: "Graph Traversal Set", description: "BFS/DFS on 4 LeetCode problems.", dueDate: "2025-09-15", createdAt: "2025-09-01" },
-  ],
-  submissions: [
-    { assignmentId: "as1", studentId: "s1", submittedAt: "2025-10-18", note: "Done." },
-    { assignmentId: "as3", studentId: "s1", submittedAt: "2025-09-14" },
-  ],
-  comments: [
-    { id: "c1", authorId: "s2", authorName: "Diya Patel", authorRole: "student", text: "Will the React session be recorded?", createdAt: "2025-10-08T10:00:00Z" },
-    { id: "c2", authorId: "a1", authorName: "Volunteer Lead", authorRole: "admin", text: "Yes! Recordings will be posted in the resources channel.", createdAt: "2025-10-08T11:30:00Z" },
-  ],
+  students: [],
+  admins: [],
+  sessions: [],
+  attendance: [],
+  assignments: [],
+  submissions: [],
+  comments: [],
 });
 
 let listeners = new Set<() => void>();
