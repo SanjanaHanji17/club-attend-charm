@@ -12,6 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StudentSessionsRouteImport } from './routes/student.sessions'
+import { Route as StudentProfileRouteImport } from './routes/student.profile'
+import { Route as StudentDiscussionRouteImport } from './routes/student.discussion'
+import { Route as StudentDashboardRouteImport } from './routes/student.dashboard'
+import { Route as StudentAssignmentsRouteImport } from './routes/student.assignments'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -28,35 +33,105 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudentSessionsRoute = StudentSessionsRouteImport.update({
+  id: '/student/sessions',
+  path: '/student/sessions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudentProfileRoute = StudentProfileRouteImport.update({
+  id: '/student/profile',
+  path: '/student/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudentDiscussionRoute = StudentDiscussionRouteImport.update({
+  id: '/student/discussion',
+  path: '/student/discussion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudentDashboardRoute = StudentDashboardRouteImport.update({
+  id: '/student/dashboard',
+  path: '/student/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudentAssignmentsRoute = StudentAssignmentsRouteImport.update({
+  id: '/student/assignments',
+  path: '/student/assignments',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/student/assignments': typeof StudentAssignmentsRoute
+  '/student/dashboard': typeof StudentDashboardRoute
+  '/student/discussion': typeof StudentDiscussionRoute
+  '/student/profile': typeof StudentProfileRoute
+  '/student/sessions': typeof StudentSessionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/student/assignments': typeof StudentAssignmentsRoute
+  '/student/dashboard': typeof StudentDashboardRoute
+  '/student/discussion': typeof StudentDiscussionRoute
+  '/student/profile': typeof StudentProfileRoute
+  '/student/sessions': typeof StudentSessionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/student/assignments': typeof StudentAssignmentsRoute
+  '/student/dashboard': typeof StudentDashboardRoute
+  '/student/discussion': typeof StudentDiscussionRoute
+  '/student/profile': typeof StudentProfileRoute
+  '/student/sessions': typeof StudentSessionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/register'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/student/assignments'
+    | '/student/dashboard'
+    | '/student/discussion'
+    | '/student/profile'
+    | '/student/sessions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register'
-  id: '__root__' | '/' | '/login' | '/register'
+  to:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/student/assignments'
+    | '/student/dashboard'
+    | '/student/discussion'
+    | '/student/profile'
+    | '/student/sessions'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/register'
+    | '/student/assignments'
+    | '/student/dashboard'
+    | '/student/discussion'
+    | '/student/profile'
+    | '/student/sessions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  StudentAssignmentsRoute: typeof StudentAssignmentsRoute
+  StudentDashboardRoute: typeof StudentDashboardRoute
+  StudentDiscussionRoute: typeof StudentDiscussionRoute
+  StudentProfileRoute: typeof StudentProfileRoute
+  StudentSessionsRoute: typeof StudentSessionsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +157,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/student/sessions': {
+      id: '/student/sessions'
+      path: '/student/sessions'
+      fullPath: '/student/sessions'
+      preLoaderRoute: typeof StudentSessionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/student/profile': {
+      id: '/student/profile'
+      path: '/student/profile'
+      fullPath: '/student/profile'
+      preLoaderRoute: typeof StudentProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/student/discussion': {
+      id: '/student/discussion'
+      path: '/student/discussion'
+      fullPath: '/student/discussion'
+      preLoaderRoute: typeof StudentDiscussionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/student/dashboard': {
+      id: '/student/dashboard'
+      path: '/student/dashboard'
+      fullPath: '/student/dashboard'
+      preLoaderRoute: typeof StudentDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/student/assignments': {
+      id: '/student/assignments'
+      path: '/student/assignments'
+      fullPath: '/student/assignments'
+      preLoaderRoute: typeof StudentAssignmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +199,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  StudentAssignmentsRoute: StudentAssignmentsRoute,
+  StudentDashboardRoute: StudentDashboardRoute,
+  StudentDiscussionRoute: StudentDiscussionRoute,
+  StudentProfileRoute: StudentProfileRoute,
+  StudentSessionsRoute: StudentSessionsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
