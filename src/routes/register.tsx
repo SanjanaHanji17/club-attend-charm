@@ -98,8 +98,20 @@ function AdminSignup() {
     if (Object.values(f).some((v) => !v)) return toast.error("Please fill all fields");
     if (f.adminCode !== "admin123") return toast.error("Invalid admin registration code");
     if (f.password.length < 6) return toast.error("Password must be at least 6 characters");
-    const id = uid();
-    db.set((d) => ({ ...d, admins: [...d.admins, { id, ...f }] }));
+    let id = "";
+    db.set((d) => {
+      if (d.admins.some((a) => a.adminCode === f.adminCode)) {
+        toast.error("Admin code already registered");
+        return d;
+      }
+      if (d.admins.some((a) => a.usn.toLowerCase() === f.usn.toLowerCase())) {
+        toast.error("USN already registered");
+        return d;
+      }
+      id = uid();
+      return { ...d, admins: [...d.admins, { id, ...f }] };
+    });
+    if (!id) return;
     auth.set({ role: "admin", userId: id });
     toast.success("Admin account created!");
     navigate({ to: "/admin/dashboard" });
