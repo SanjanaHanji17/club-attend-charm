@@ -96,12 +96,12 @@ function Page() {
             <p className="text-xs uppercase tracking-widest text-primary flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" /> Welcome back
             </p>
-            <h1 className="text-3xl md:text-4xl font-bold mt-1">Hi, {student.fullName.split(" ")[0]} 👋</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mt-1">Hi, {(student.fullName || "Student").split(" ")[0]} 👋</h1>
             <p className="text-muted-foreground mt-2 max-w-xl">Your live coding club journey.</p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="glass">{student.department}</Badge>
-            <Badge variant="outline" className="glass">{student.year} year</Badge>
+            <Badge variant="outline" className="glass">{student.department || "No data available"}</Badge>
+            <Badge variant="outline" className="glass">{student.year ? `${student.year} year` : "No data available"}</Badge>
           </div>
         </div>
       </div>
