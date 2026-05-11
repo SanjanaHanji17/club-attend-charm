@@ -71,12 +71,7 @@ function Landing() {
 
         {/* Stat strip */}
         <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-          {[
-            { k: "120+", l: "Active members" },
-            { k: "48", l: "Sessions hosted" },
-            { k: "92%", l: "Avg. attendance" },
-            { k: "4.9", l: "Member rating" },
-          ].map((s, i) => (
+          {stats.map((s, i) => (
             <div key={i} className="glass rounded-2xl p-5 hover-lift animate-fade-in-up" style={{ animationDelay: `${400 + i * 80}ms` }}>
               <p className="text-3xl font-bold gradient-text">{s.k}</p>
               <p className="text-xs text-muted-foreground mt-1">{s.l}</p>
