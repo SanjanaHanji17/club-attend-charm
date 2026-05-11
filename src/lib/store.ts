@@ -87,19 +87,36 @@ const seed = (): DB => ({
 let listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
+let cachedRaw: string | null = null;
+let cachedDB: DB | null = null;
+const SERVER_SNAPSHOT: DB = seed();
+
 const load = (): DB => {
-  if (typeof window === "undefined") return seed();
+  if (typeof window === "undefined") return SERVER_SNAPSHOT;
   const raw = localStorage.getItem(KEY);
   if (!raw) {
     const s = seed();
     localStorage.setItem(KEY, JSON.stringify(s));
+    cachedRaw = JSON.stringify(s);
+    cachedDB = s;
     return s;
   }
-  try { return JSON.parse(raw) as DB; } catch { return seed(); }
+  if (raw === cachedRaw && cachedDB) return cachedDB;
+  try {
+    const parsed = JSON.parse(raw) as DB;
+    cachedRaw = raw;
+    cachedDB = parsed;
+    return parsed;
+  } catch {
+    return seed();
+  }
 };
 
 const save = (db: DB) => {
-  localStorage.setItem(KEY, JSON.stringify(db));
+  const raw = JSON.stringify(db);
+  localStorage.setItem(KEY, raw);
+  cachedRaw = raw;
+  cachedDB = db;
   emit();
 };
 
@@ -118,9 +135,7 @@ export function useDB<T>(selector: (d: DB) => T): T {
     return () => listeners.delete(cb);
   };
   const getSnapshot = () => selector(load());
-  // useSyncExternalStore returns referentially-equal data only if selector returns same ref.
-  // For SSR safety, give a server snapshot using seed().
-  return useSyncExternalStore(subscribe, getSnapshot, () => selector(seed()));
+  return useSyncExternalStore(subscribe, getSnapshot, () => selector(SERVER_SNAPSHOT));
 }
 
 // Auth session
