@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
-import { useAuth, db, Student } from "@/lib/store";
+import { useAuth, db } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -17,9 +17,32 @@ export const Route = createFileRoute("/student/profile")({
 
 function Page() {
   const { user } = useAuth();
-  const me = user as Student;
-  const [f, setF] = useState({ ...me });
+  const [f, setF] = useState(() => ({
+    id: "",
+    fullName: "",
+    usn: "",
+    department: "",
+    year: "",
+    phone: "",
+    password: "",
+    avatar: "",
+  }));
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (user) {
+      setF({
+        ...user,
+        avatar: user.avatar ?? "",
+      });
+    }
+  }, [user]);
+
+  if (!user) {
+    return <div className="text-muted-foreground">No data available</div>;
+  }
+
+  const me = user;
 
   const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
