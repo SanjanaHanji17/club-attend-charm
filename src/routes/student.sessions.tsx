@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
-import { useAuth, useDB, Student } from "@/lib/store";
+import { useAuth, useDB } from "@/lib/store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,9 +14,14 @@ export const Route = createFileRoute("/student/sessions")({
 
 function Page() {
   const { user } = useAuth();
-  const me = user as Student;
   const data = useDB((d) => d);
   const [q, setQ] = useState("");
+
+  if (!user) {
+    return <p className="text-muted-foreground">No data available</p>;
+  }
+
+  const me = user;
   const sessions = data.sessions
     .filter((s) => s.title.toLowerCase().includes(q.toLowerCase()) || s.resourcePerson.toLowerCase().includes(q.toLowerCase()))
     .sort((a, b) => +new Date(b.date) - +new Date(a.date));
