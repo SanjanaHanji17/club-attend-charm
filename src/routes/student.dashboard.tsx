@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
-import { useAuth, useDB, Student } from "@/lib/store";
+import { useAuth, useDB } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -52,8 +52,13 @@ function streak(records: { sessionId: string; present: boolean }[], orderedIds: 
 
 function Page() {
   const { user } = useAuth();
-  const student = user as Student;
   const data = useDB((d) => d);
+
+  if (!user) {
+    return <EmptyState message="No data available" />;
+  }
+
+  const student = user;
 
   const myAttendance = data.attendance.filter((a) => a.studentId === student.id);
   const totalSessions = data.sessions.length;
