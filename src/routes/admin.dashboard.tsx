@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
-import { useAuth, useDB, Admin } from "@/lib/store";
+import { useAuth, useDB } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, CalendarDays, TrendingUp, FileText, Sparkles, Inbox } from "lucide-react";
 import {
@@ -40,8 +40,13 @@ function EmptyState({ message }: { message: string }) {
 
 function Page() {
   const { user } = useAuth();
-  const me = user as Admin;
   const data = useDB((d) => d);
+
+  if (!user) {
+    return <EmptyState message="No data available" />;
+  }
+
+  const me = user;
 
   const totalStudents = data.students.length;
   const totalSessions = data.sessions.length;
