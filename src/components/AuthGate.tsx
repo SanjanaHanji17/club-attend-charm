@@ -8,11 +8,18 @@ export function AuthGate({ role, children }: { role: Role; children: ReactNode }
   const { session, user, isAuthenticated } = useAuth();
   useEffect(() => {
     const s = auth.get();
-    if (!s || (s.role === role && !user)) {
+    if (!s) {
+      navigate({ to: "/login" });
+      return;
+    }
+
+    if (s.role === role && !user) {
       auth.set(null);
       navigate({ to: "/login" });
+      return;
     }
-    else if (s.role !== role) {
+
+    if (s.role !== role) {
       navigate({ to: s.role === "admin" ? "/admin/dashboard" : "/student/dashboard" });
     }
   }, [navigate, role, session, user]);
