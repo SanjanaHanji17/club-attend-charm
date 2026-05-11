@@ -1,12 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Code2, Sparkles, BarChart3, Users, CalendarCheck, MessageSquare, ArrowRight, Github } from "lucide-react";
+import { useDB } from "@/lib/store";
 
 export const Route = createFileRoute("/")({
   component: Landing,
 });
 
 function Landing() {
+  const data = useDB((d) => d);
+  const totalMembers = data.students.length;
+  const totalSessions = data.sessions.length;
+  const possible = totalMembers * totalSessions;
+  const present = data.attendance.filter((a) => a.present).length;
+  const avgAttendance = possible > 0 ? Math.round((present / possible) * 100) : 0;
+  const stats = [
+    { k: totalMembers > 0 ? String(totalMembers) : "0", l: "Active members" },
+    { k: totalSessions > 0 ? String(totalSessions) : "0", l: "Sessions hosted" },
+    { k: `${avgAttendance}%`, l: "Avg. attendance" },
+    { k: "0.0", l: "Member rating" },
+  ];
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Floating orbs */}
@@ -58,12 +71,7 @@ function Landing() {
 
         {/* Stat strip */}
         <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-          {[
-            { k: "120+", l: "Active members" },
-            { k: "48", l: "Sessions hosted" },
-            { k: "92%", l: "Avg. attendance" },
-            { k: "4.9", l: "Member rating" },
-          ].map((s, i) => (
+          {stats.map((s, i) => (
             <div key={i} className="glass rounded-2xl p-5 hover-lift animate-fade-in-up" style={{ animationDelay: `${400 + i * 80}ms` }}>
               <p className="text-3xl font-bold gradient-text">{s.k}</p>
               <p className="text-xs text-muted-foreground mt-1">{s.l}</p>
