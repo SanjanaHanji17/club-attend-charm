@@ -80,7 +80,7 @@ function Page() {
         <p className="text-xs uppercase tracking-widest text-primary flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5" /> Admin overview
         </p>
-        <h1 className="text-3xl md:text-4xl font-bold mt-1">Hi, {me.fullName.split(" ")[0]}</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mt-1">Hi, {(me.fullName || "Admin").split(" ")[0]}</h1>
         <p className="text-muted-foreground mt-2 max-w-xl">Live pulse of your coding club.</p>
       </div>
 
