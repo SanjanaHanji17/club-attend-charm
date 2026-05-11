@@ -1,5 +1,5 @@
-// Frontend-only data store using localStorage. Mocks the backend.
-import { useEffect, useState, useSyncExternalStore } from "react";
+// Frontend-only data store using localStorage.
+import { useSyncExternalStore } from "react";
 
 export type Role = "student" | "admin";
 
@@ -86,6 +86,10 @@ const seed = (): DB => ({
 
 let listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
+const subscribe = (cb: () => void) => {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+};
 
 let cachedRaw: string | null = null;
 let cachedDB: DB | null = null;
@@ -108,7 +112,12 @@ const load = (): DB => {
     cachedDB = parsed;
     return parsed;
   } catch {
-    return seed();
+    const next = seed();
+    const nextRaw = JSON.stringify(next);
+    localStorage.setItem(KEY, nextRaw);
+    cachedRaw = nextRaw;
+    cachedDB = next;
+    return next;
   }
 };
 
@@ -130,10 +139,6 @@ export const db = {
 };
 
 export function useDB<T>(selector: (d: DB) => T): T {
-  const subscribe = (cb: () => void) => {
-    listeners.add(cb);
-    return () => listeners.delete(cb);
-  };
   const getSnapshot = () => selector(load());
   return useSyncExternalStore(subscribe, getSnapshot, () => selector(SERVER_SNAPSHOT));
 }
@@ -148,7 +153,13 @@ export const auth = {
   get(): AuthSession | null {
     if (typeof window === "undefined") return null;
     const raw = localStorage.getItem(SESSION_KEY);
-    return raw ? (JSON.parse(raw) as AuthSession) : null;
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as AuthSession;
+    } catch {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
   },
   set(s: AuthSession | null) {
     if (typeof window === "undefined") return;
@@ -159,13 +170,7 @@ export const auth = {
 };
 
 export function useAuth() {
-  const [session, setSession] = useState<AuthSession | null>(null);
-  useEffect(() => {
-    setSession(auth.get());
-    const cb = () => setSession(auth.get());
-    listeners.add(cb);
-    return () => { listeners.delete(cb); };
-  }, []);
+  const session = useSyncExternalStore(subscribe, () => auth.get(), () => null);
 
   const data = useDB((d) => d);
   const user =
@@ -175,7 +180,7 @@ export function useAuth() {
       ? data.admins.find((a) => a.id === session.userId) ?? null
       : null;
 
-  return { session, user, role: session?.role ?? null };
+  return { session, user, role: session?.role ?? null, isAuthenticated: !!session && !!user };
 }
 
 // Helpers
