@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
-import { useAuth, useDB, Admin } from "@/lib/store";
+import { useAuth, useDB } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, CalendarDays, TrendingUp, FileText, Sparkles, Inbox } from "lucide-react";
 import {
@@ -40,8 +40,13 @@ function EmptyState({ message }: { message: string }) {
 
 function Page() {
   const { user } = useAuth();
-  const me = user as Admin;
   const data = useDB((d) => d);
+
+  if (!user) {
+    return <EmptyState message="No data available" />;
+  }
+
+  const me = user;
 
   const totalStudents = data.students.length;
   const totalSessions = data.sessions.length;
@@ -75,7 +80,7 @@ function Page() {
         <p className="text-xs uppercase tracking-widest text-primary flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5" /> Admin overview
         </p>
-        <h1 className="text-3xl md:text-4xl font-bold mt-1">Hi, {me.fullName.split(" ")[0]}</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mt-1">Hi, {(me.fullName || "Admin").split(" ")[0]}</h1>
         <p className="text-muted-foreground mt-2 max-w-xl">Live pulse of your coding club.</p>
       </div>
 

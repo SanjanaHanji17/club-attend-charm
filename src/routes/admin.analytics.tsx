@@ -28,12 +28,15 @@ function Page() {
     return { name: s.title.slice(0, 10), pct };
   });
 
+  const noData = data.students.length === 0 && data.sessions.length === 0 && data.attendance.length === 0;
+
   return (
     <div className="space-y-6 max-w-7xl">
       <div>
         <h1 className="text-3xl font-bold">Analytics</h1>
         <p className="text-muted-foreground">Deep insight into engagement.</p>
       </div>
+      {noData && <p className="text-sm text-muted-foreground">No data available</p>}
       <div className="grid lg:grid-cols-2 gap-4">
         <Card className="glass border-border/50 animate-fade-in-up">
           <CardHeader><CardTitle className="text-base">Per-student attendance %</CardTitle></CardHeader>

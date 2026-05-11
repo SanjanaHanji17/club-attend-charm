@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
-import { useAuth, useDB, Student } from "@/lib/store";
+import { useAuth, useDB } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -52,8 +52,13 @@ function streak(records: { sessionId: string; present: boolean }[], orderedIds: 
 
 function Page() {
   const { user } = useAuth();
-  const student = user as Student;
   const data = useDB((d) => d);
+
+  if (!user) {
+    return <EmptyState message="No data available" />;
+  }
+
+  const student = user;
 
   const myAttendance = data.attendance.filter((a) => a.studentId === student.id);
   const totalSessions = data.sessions.length;
@@ -91,12 +96,12 @@ function Page() {
             <p className="text-xs uppercase tracking-widest text-primary flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" /> Welcome back
             </p>
-            <h1 className="text-3xl md:text-4xl font-bold mt-1">Hi, {student.fullName.split(" ")[0]} 👋</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mt-1">Hi, {(student.fullName || "Student").split(" ")[0]} 👋</h1>
             <p className="text-muted-foreground mt-2 max-w-xl">Your live coding club journey.</p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="glass">{student.department}</Badge>
-            <Badge variant="outline" className="glass">{student.year} year</Badge>
+            <Badge variant="outline" className="glass">{student.department || "No data available"}</Badge>
+            <Badge variant="outline" className="glass">{student.year ? `${student.year} year` : "No data available"}</Badge>
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
-import { useAuth, useDB, Student, db, uid } from "@/lib/store";
+import { useAuth, useDB, db } from "@/lib/store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,14 @@ export const Route = createFileRoute("/student/assignments")({
 
 function Page() {
   const { user } = useAuth();
-  const me = user as Student;
   const data = useDB((d) => d);
   const today = new Date();
+
+  if (!user) {
+    return <p className="text-muted-foreground">No data available</p>;
+  }
+
+  const me = user;
   const items = data.assignments.map((a) => ({
     ...a,
     submitted: !!data.submissions.find((s) => s.assignmentId === a.id && s.studentId === me.id),

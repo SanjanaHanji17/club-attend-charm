@@ -87,7 +87,7 @@ function StudentLogin() {
     if (!user) return toast.error("USN not found");
     if (user.password !== password) return toast.error("Incorrect password");
     auth.set({ role: "student", userId: user.id });
-    toast.success(`Welcome, ${user.fullName.split(" ")[0]}`);
+    toast.success(`Welcome, ${(user.fullName || "Student").split(" ")[0]}`);
     navigate({ to: "/student/dashboard" });
   };
 
@@ -125,7 +125,7 @@ function AdminLogin() {
     if (!admin) return toast.error("Admin code not found");
     if (admin.password !== password) return toast.error("Incorrect password");
     auth.set({ role: "admin", userId: admin.id });
-    toast.success(`Welcome, ${admin.fullName.split(" ")[0]}`);
+    toast.success(`Welcome, ${(admin.fullName || "Admin").split(" ")[0]}`);
     navigate({ to: "/admin/dashboard" });
   };
 
