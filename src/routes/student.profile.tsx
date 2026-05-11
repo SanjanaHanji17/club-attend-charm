@@ -57,7 +57,7 @@ function Page() {
     toast.success("Profile updated");
   };
 
-  const initials = me.fullName.split(" ").map((s) => s[0]).slice(0, 2).join("");
+  const initials = (me.fullName || "U").split(" ").map((s) => s[0]).slice(0, 2).join("");
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -82,8 +82,8 @@ function Page() {
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPick} />
           </div>
           <div>
-            <p className="font-semibold">{f.fullName}</p>
-            <p className="text-sm text-muted-foreground">{f.usn} · {f.department}</p>
+            <p className="font-semibold">{f.fullName || "No data available"}</p>
+            <p className="text-sm text-muted-foreground">{f.usn || "No data available"} · {f.department || "No data available"}</p>
           </div>
         </CardContent>
       </Card>
