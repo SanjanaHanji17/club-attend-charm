@@ -33,7 +33,7 @@ function Page() {
       </div>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {list.map((s, i) => {
-          const initials = s.fullName.split(" ").map((x) => x[0]).slice(0, 2).join("");
+          const initials = s.fullName.split(" ").map((x: any) => x[0]).slice(0, 2).join("");
           const att = data.attendance.filter((a) => a.studentId === s.id);
           const pct = data.sessions.length ? Math.round((att.filter((a) => a.present).length / data.sessions.length) * 100) : 0;
           return (
@@ -62,7 +62,7 @@ function Page() {
                   className="w-full mt-3 text-destructive hover:text-destructive hover:bg-destructive/10"
                   onClick={() => {
                     if (!confirm(`Remove ${s.fullName}?`)) return;
-                    db.set((d) => ({ ...d, students: d.students.filter((x) => x.id !== s.id) }));
+                    db.set((d) => ({ ...d, students: d.students.filter((x: any) => x.id !== s.id) }));
                     toast.success("Student removed");
                   }}
                 >

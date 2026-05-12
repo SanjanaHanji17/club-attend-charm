@@ -30,7 +30,7 @@ export function AppSidebar() {
   ];
   const items = role === "admin" ? adminItems : studentItems;
 
-  const initials = (user?.fullName ?? "U").split(" ").map((s) => s[0]).slice(0, 2).join("");
+  const initials = (user?.fullName ?? "U").split(" ").map((s: any) => s[0]).slice(0, 2).join("");
 
   return (
     <aside className="hidden md:flex w-64 shrink-0 flex-col glass-strong border-r border-border/50 sticky top-0 h-screen">
