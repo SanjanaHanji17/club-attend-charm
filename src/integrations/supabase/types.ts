@@ -14,7 +14,154 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      announcements: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance: {
+        Row: {
+          created_at: string | null
+          id: string
+          present: boolean | null
+          session_id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          present?: boolean | null
+          session_id: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          present?: boolean | null
+          session_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          full_name: string
+          id: string
+          phone: string | null
+          qr_code: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          usn: string
+          year: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          full_name: string
+          id: string
+          phone?: string | null
+          qr_code?: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          usn: string
+          year?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          qr_code?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          usn?: string
+          year?: string | null
+        }
+        Relationships: []
+      }
+      sessions: {
+        Row: {
+          created_at: string | null
+          date: string
+          description: string | null
+          host_id: string | null
+          id: string
+          resource_person: string
+          time: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          description?: string | null
+          host_id?: string | null
+          id?: string
+          resource_person: string
+          time: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          host_id?: string | null
+          id?: string
+          resource_person?: string
+          time?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +170,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "student"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +297,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "student"],
+    },
   },
 } as const
