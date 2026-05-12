@@ -183,7 +183,7 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
     announcements: []
   };
 
-  return selector ? selector(fullData) : fullData;
+  return (selector ? selector(fullData as LegacyDB) : fullData) as unknown as T;
 }
 
 export function useAuth() {
