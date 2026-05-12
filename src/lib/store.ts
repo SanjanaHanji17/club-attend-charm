@@ -71,7 +71,18 @@ export interface Announcement {
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
 // For backwards compatibility while migrating components
-export function useDB<T = any>(selector?: (d: any) => T): T {
+interface LegacyDB {
+  students: any[];
+  admins: any[];
+  sessions: { id: string; title: string; date: string; time?: string; host: string; resourcePerson: string; description: string; }[];
+  attendance: { sessionId: string; studentId: string; present: boolean; }[];
+  assignments: { id: string; title: string; description: string; dueDate: string; createdAt: string; }[];
+  submissions: { assignmentId: string; studentId: string; submittedAt: string; note: string; }[];
+  comments: { id: string; authorId: string; authorName: string; authorRole: string; text: string; createdAt: string; replies?: any[]; }[];
+  announcements: any[];
+}
+
+export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
   const { data } = useQuery({
     queryKey: ["app_data"],
     queryFn: async () => {
