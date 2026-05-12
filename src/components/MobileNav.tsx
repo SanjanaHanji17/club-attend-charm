@@ -44,7 +44,7 @@ export function MobileNav({ items }: { items: { to: string; label: string; icon:
             <Button
               variant="ghost" size="sm"
               className="w-full justify-start gap-2 mt-2 text-destructive"
-              onClick={() => { auth.set(null); navigate({ to: "/login" }); }}
+              onClick={() => { auth.signOut().then(() => { window.location.href = '/login'; }); navigate({ to: "/login" }); }}
             >
               <LogOut className="w-4 h-4" /> Logout
             </Button>

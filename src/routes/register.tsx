@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { auth, db, uid } from "@/lib/store";
 import { Code2 } from "lucide-react";
+import { registerWithUsn } from "@/lib/supabase-auth";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/register")({
   component: RegisterPage,
@@ -15,8 +16,6 @@ export const Route = createFileRoute("/register")({
 function RegisterPage() {
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4 py-10 overflow-hidden">
-      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 rounded-full gradient-aurora opacity-30 blur-3xl animate-float" />
-      <div className="pointer-events-none absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-accent/30 blur-3xl animate-float" style={{ animationDelay: "2s" }} />
       <div className="relative z-10 w-full max-w-lg animate-scale-in">
         <Link to="/" className="flex items-center justify-center gap-2 mb-6">
           <div className="w-11 h-11 rounded-xl gradient-aurora grid place-items-center shadow-glow">
@@ -56,35 +55,60 @@ function Field({ label, ...p }: any) {
 
 function StudentSignup() {
   const navigate = useNavigate();
-  const [f, setF] = useState({ fullName: "", usn: "", department: "", year: "", phone: "", password: "" });
-  const submit = (e: React.FormEvent) => {
+  const [f, setF] = useState({ fullName: "", usn: "", department: "", phone: "", password: "" });
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (Object.values(f).some((v) => !v)) return toast.error("Please fill all fields");
     if (f.password.length < 6) return toast.error("Password must be at least 6 characters");
-    let id = "";
-    db.set((d) => {
-      if (d.students.some((s) => s.usn.toLowerCase() === f.usn.toLowerCase())) {
-        toast.error("USN already registered");
-        return d;
-      }
-      id = uid();
-      return { ...d, students: [...d.students, { id, ...f }] };
+    setLoading(true);
+
+    const { data, error } = await registerWithUsn(f.usn, f.password, "student", {
+      fullName: f.fullName,
+      usn: f.usn,
+      department: f.department,
+      phone: f.phone
     });
-    if (!id) return;
-    auth.set({ role: "student", userId: id });
-    toast.success("Account created!");
-    navigate({ to: "/student/dashboard" });
+
+    if (error) {
+      toast.error(error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (data.user) {
+      const qr_code = Math.random().toString(36).slice(2, 10).toUpperCase() + f.usn.slice(-4);
+      const { error: profileError } = await supabase.from("profiles").insert({
+        id: data.user.id,
+        role: "student",
+        full_name: f.fullName,
+        usn: f.usn,
+        department: f.department,
+        phone: f.phone,
+        qr_code: qr_code
+      });
+
+      if (profileError) {
+        toast.error(profileError.message);
+        setLoading(false);
+        return;
+      }
+
+      toast.success("Account created!");
+      navigate({ to: "/student/dashboard" });
+    }
   };
+
   return (
     <form onSubmit={submit} className="grid grid-cols-2 gap-3">
       <div className="col-span-2"><Field label="Full Name" value={f.fullName} onChange={(e: any) => setF({ ...f, fullName: e.target.value })} /></div>
       <Field label="USN" value={f.usn} onChange={(e: any) => setF({ ...f, usn: e.target.value })} />
       <Field label="Department" value={f.department} onChange={(e: any) => setF({ ...f, department: e.target.value })} placeholder="CSE / ISE..." />
-      <Field label="Class / Year" value={f.year} onChange={(e: any) => setF({ ...f, year: e.target.value })} placeholder="3rd" />
       <Field label="Phone Number" value={f.phone} onChange={(e: any) => setF({ ...f, phone: e.target.value })} />
       <div className="col-span-2"><Field label="Password" type="password" value={f.password} onChange={(e: any) => setF({ ...f, password: e.target.value })} /></div>
       <div className="col-span-2 mt-1">
-        <Button type="submit" className="w-full gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">Create account</Button>
+        <Button disabled={loading} type="submit" className="w-full gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">Create account</Button>
       </div>
     </form>
   );
@@ -92,41 +116,58 @@ function StudentSignup() {
 
 function AdminSignup() {
   const navigate = useNavigate();
-  const [f, setF] = useState({ fullName: "", adminCode: "", usn: "", year: "", department: "", phone: "", password: "" });
-  const submit = (e: React.FormEvent) => {
+  const [f, setF] = useState({ fullName: "", usn: "", department: "", phone: "", password: "" });
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (Object.values(f).some((v) => !v)) return toast.error("Please fill all fields");
-    if (f.adminCode !== "admin123") return toast.error("Invalid admin registration code");
     if (f.password.length < 6) return toast.error("Password must be at least 6 characters");
-    let id = "";
-    db.set((d) => {
-      if (d.admins.some((a) => a.adminCode === f.adminCode)) {
-        toast.error("Admin code already registered");
-        return d;
-      }
-      if (d.admins.some((a) => a.usn.toLowerCase() === f.usn.toLowerCase())) {
-        toast.error("USN already registered");
-        return d;
-      }
-      id = uid();
-      return { ...d, admins: [...d.admins, { id, ...f }] };
+    setLoading(true);
+
+    const { data, error } = await registerWithUsn(f.usn, f.password, "admin", {
+      fullName: f.fullName,
+      usn: f.usn,
+      department: f.department,
+      phone: f.phone
     });
-    if (!id) return;
-    auth.set({ role: "admin", userId: id });
-    toast.success("Admin account created!");
-    navigate({ to: "/admin/dashboard" });
+
+    if (error) {
+      toast.error(error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (data.user) {
+      const { error: profileError } = await supabase.from("profiles").insert({
+        id: data.user.id,
+        role: "admin",
+        full_name: f.fullName,
+        usn: f.usn,
+        department: f.department,
+        phone: f.phone
+      });
+
+      if (profileError) {
+        toast.error(profileError.message);
+        setLoading(false);
+        return;
+      }
+
+      toast.success("Admin account created!");
+      navigate({ to: "/admin/dashboard" });
+    }
   };
+
   return (
     <form onSubmit={submit} className="grid grid-cols-2 gap-3">
       <div className="col-span-2"><Field label="Full Name" value={f.fullName} onChange={(e: any) => setF({ ...f, fullName: e.target.value })} /></div>
-      <div className="col-span-2"><Field label="Admin Registration Code" value={f.adminCode} onChange={(e: any) => setF({ ...f, adminCode: e.target.value })} placeholder="admin123" /></div>
       <Field label="USN" value={f.usn} onChange={(e: any) => setF({ ...f, usn: e.target.value })} />
-      <Field label="Year" value={f.year} onChange={(e: any) => setF({ ...f, year: e.target.value })} />
       <Field label="Department" value={f.department} onChange={(e: any) => setF({ ...f, department: e.target.value })} />
       <Field label="Phone" value={f.phone} onChange={(e: any) => setF({ ...f, phone: e.target.value })} />
       <div className="col-span-2"><Field label="Password" type="password" value={f.password} onChange={(e: any) => setF({ ...f, password: e.target.value })} /></div>
       <div className="col-span-2 mt-1">
-        <Button type="submit" className="w-full gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">Register as Admin</Button>
+        <Button disabled={loading} type="submit" className="w-full gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">Register as Admin</Button>
       </div>
     </form>
   );

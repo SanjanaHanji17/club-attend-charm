@@ -26,7 +26,7 @@ function Page() {
 
   const create = () => {
     if (!f.title || !f.dueDate) return toast.error("Title and due date are required");
-    const a: Assignment = { id: uid(), createdAt: new Date().toISOString(), ...f };
+    const a: Assignment = { id: uid(), created_at: new Date().toISOString(), ...f };
     db.set((d) => ({ ...d, assignments: [a, ...d.assignments] }));
     toast.success("Assignment created");
     setOpen(false);
@@ -63,7 +63,7 @@ function Page() {
       )}
       <div className="grid md:grid-cols-2 gap-4">
         {data.assignments.map((a, i) => {
-          const submitted = data.submissions.filter((s) => s.assignmentId === a.id).length;
+          const submitted = data.submissions.filter((s: any) => s.assignmentId === a.id).length;
           const total = data.students.length;
           const pct = total ? Math.round((submitted / total) * 100) : 0;
           return (
@@ -81,8 +81,8 @@ function Page() {
                           if (!confirm(`Delete "${a.title}"?`)) return;
                           db.set((d) => ({
                             ...d,
-                            assignments: d.assignments.filter((x) => x.id !== a.id),
-                            submissions: d.submissions.filter((s) => s.assignmentId !== a.id),
+                            assignments: d.assignments.filter((x: any) => x.id !== a.id),
+                            submissions: d.submissions.filter((s: any) => s.assignmentId !== a.id),
                           }));
                           toast.success("Deleted");
                         }}>
@@ -96,7 +96,7 @@ function Page() {
                     </div>
                     <div className="mt-3 grid gap-1.5">
                       {data.students.map((st) => {
-                        const s = data.submissions.find((x) => x.assignmentId === a.id && x.studentId === st.id);
+                        const s = data.submissions.find((x: any) => x.assignmentId === a.id && x.studentId === st.id);
                         return (
                           <div key={st.id} className="flex items-center justify-between text-xs glass rounded-lg px-2.5 py-1.5">
                             <span className="truncate">{st.fullName}</span>

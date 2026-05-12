@@ -30,7 +30,7 @@ export function AppSidebar() {
   ];
   const items = role === "admin" ? adminItems : studentItems;
 
-  const initials = (user?.fullName ?? "U").split(" ").map((s) => s[0]).slice(0, 2).join("");
+  const initials = (user?.fullName ?? "U").split(" ").map((s: any) => s[0]).slice(0, 2).join("");
 
   return (
     <aside className="hidden md:flex w-64 shrink-0 flex-col glass-strong border-r border-border/50 sticky top-0 h-screen">
@@ -83,7 +83,7 @@ export function AppSidebar() {
           variant="ghost"
           size="sm"
           className="w-full justify-start gap-2 mt-1 text-muted-foreground hover:text-destructive"
-          onClick={() => { auth.set(null); navigate({ to: "/login" }); }}
+          onClick={() => { auth.signOut().then(() => { window.location.href = '/login'; }); navigate({ to: "/login" }); }}
         >
           <LogOut className="w-4 h-4" /> Logout
         </Button>

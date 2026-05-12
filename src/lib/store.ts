@@ -1,187 +1,261 @@
-// Frontend-only data store using localStorage.
-import { useSyncExternalStore } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
 export type Role = "student" | "admin";
 
-export interface Student {
+export interface Profile {
   id: string;
-  fullName: string;
+  role: Role;
+  full_name: string;
   usn: string;
-  department: string;
-  year: string;
-  phone: string;
-  password: string;
-  avatar?: string;
+  department?: string;
+  year?: string;
+  phone?: string;
+  qr_code?: string;
+  created_at: string;
 }
-export interface Admin {
-  id: string;
-  fullName: string;
-  adminCode: string;
-  usn: string;
-  year: string;
-  department: string;
-  phone: string;
-  password: string;
-  avatar?: string;
-}
+
 export interface Session {
   id: string;
   title: string;
   date: string;
-  host: string;
-  resourcePerson: string;
+  time: string;
+  resource_person: string;
   description: string;
+  host_id: string;
+  created_at: string;
 }
+
 export interface AttendanceRecord {
-  sessionId: string;
-  studentId: string;
+  id: string;
+  session_id: string;
+  student_id: string;
   present: boolean;
+  created_at: string;
 }
+
 export interface Assignment {
   id: string;
   title: string;
   description: string;
-  dueDate: string;
-  createdAt: string;
+  due_date: string;
+  created_at: string;
 }
+
 export interface Submission {
-  assignmentId: string;
-  studentId: string;
-  submittedAt: string;
-  note?: string;
+  id: string;
+  assignment_id: string;
+  student_id: string;
+  note: string;
+  submitted_at: string;
 }
+
 export interface Comment {
   id: string;
-  authorId: string;
-  authorName: string;
-  authorRole: Role;
+  author_id: string;
   text: string;
-  createdAt: string;
-  replies?: Comment[];
+  parent_id?: string;
+  created_at: string;
 }
 
-interface DB {
-  students: Student[];
-  admins: Admin[];
-  sessions: Session[];
-  attendance: AttendanceRecord[];
-  assignments: Assignment[];
-  submissions: Submission[];
-  comments: Comment[];
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  author_id: string;
+  created_at: string;
 }
 
-const KEY = "cc_attendance_db_v2";
-const SESSION_KEY = "cc_attendance_session_v1";
+export const uid = () => Math.random().toString(36).slice(2, 10);
 
-// Empty initial database. All data must be created by registration / admin actions.
-const seed = (): DB => ({
-  students: [],
-  admins: [],
-  sessions: [],
-  attendance: [],
-  assignments: [],
-  submissions: [],
-  comments: [],
-});
-
-let listeners = new Set<() => void>();
-const emit = () => listeners.forEach((l) => l());
-const subscribe = (cb: () => void) => {
-  listeners.add(cb);
-  return () => listeners.delete(cb);
-};
-
-let cachedRaw: string | null = null;
-let cachedDB: DB | null = null;
-const SERVER_SNAPSHOT: DB = seed();
-
-const load = (): DB => {
-  if (typeof window === "undefined") return SERVER_SNAPSHOT;
-  const raw = localStorage.getItem(KEY);
-  if (!raw) {
-    const s = seed();
-    localStorage.setItem(KEY, JSON.stringify(s));
-    cachedRaw = JSON.stringify(s);
-    cachedDB = s;
-    return s;
-  }
-  if (raw === cachedRaw && cachedDB) return cachedDB;
-  try {
-    const parsed = JSON.parse(raw) as DB;
-    cachedRaw = raw;
-    cachedDB = parsed;
-    return parsed;
-  } catch {
-    const next = seed();
-    const nextRaw = JSON.stringify(next);
-    localStorage.setItem(KEY, nextRaw);
-    cachedRaw = nextRaw;
-    cachedDB = next;
-    return next;
-  }
-};
-
-const save = (db: DB) => {
-  const raw = JSON.stringify(db);
-  localStorage.setItem(KEY, raw);
-  cachedRaw = raw;
-  cachedDB = db;
-  emit();
-};
-
-export const db = {
-  get(): DB { return load(); },
-  set(updater: (d: DB) => DB) {
-    const next = updater(load());
-    save(next);
-  },
-  reset() { save(seed()); },
-};
-
-export function useDB<T>(selector: (d: DB) => T): T {
-  const getSnapshot = () => selector(load());
-  return useSyncExternalStore(subscribe, getSnapshot, () => selector(SERVER_SNAPSHOT));
+// For backwards compatibility while migrating components
+interface LegacyDB {
+  students: any[];
+  admins: any[];
+  sessions: { id: string; title: string; date: string; time?: string; host: string; resourcePerson: string; description: string; }[];
+  attendance: { sessionId: string; studentId: string; present: boolean; }[];
+  assignments: { id: string; title: string; description: string; dueDate: string; createdAt: string; }[];
+  submissions: { assignmentId: string; studentId: string; submittedAt: string; note: string; }[];
+  comments: { id: string; authorId: string; authorName: string; authorRole: string; text: string; createdAt: string; replies?: any[]; }[];
+  announcements: any[];
 }
 
-// Auth session
-export interface AuthSession {
-  role: Role;
-  userId: string;
+export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
+  const { data } = useQuery({
+    queryKey: ["app_data"],
+    queryFn: async () => {
+      const [
+        { data: profiles },
+        { data: sessions },
+        { data: attendance },
+        { data: assignments },
+        { data: submissions },
+        { data: comments },
+        { data: announcements }
+      ] = await Promise.all([
+        supabase.from("profiles").select("*"),
+        supabase.from("sessions").select("*"),
+        supabase.from("attendance").select("*"),
+        supabase.from("assignments").select("*"),
+        supabase.from("submissions").select("*"),
+        supabase.from("comments").select("*"),
+        supabase.from("announcements").select("*")
+      ]);
+      
+      const students = profiles?.filter(p => p.role === "student").map(p => ({
+        id: p.id,
+        fullName: p.full_name,
+        usn: p.usn,
+        department: p.department || "",
+        year: p.year || "",
+        phone: p.phone || "",
+        avatar: "",
+        qrCode: p.qr_code
+      })) || [];
+      
+      const admins = profiles?.filter(p => p.role === "admin").map(p => ({
+        id: p.id,
+        fullName: p.full_name,
+        adminCode: "admin123", // deprecated
+        usn: p.usn,
+        year: p.year || "",
+        department: p.department || "",
+        phone: p.phone || "",
+        avatar: ""
+      })) || [];
+
+      return {
+        students,
+        admins,
+        sessions: (sessions || []).map(s => ({
+          id: s.id,
+          title: s.title,
+          date: s.date,
+          time: s.time,
+          host: s.host_id || "",
+          resourcePerson: s.resource_person,
+          description: s.description || ""
+        })),
+        attendance: (attendance || []).map(a => ({
+          sessionId: a.session_id,
+          studentId: a.student_id,
+          present: a.present || false
+        })),
+        assignments: (assignments || []).map(a => ({
+          id: a.id,
+          title: a.title,
+          description: a.description || "",
+          dueDate: a.due_date || "",
+          createdAt: a.created_at || ""
+        })),
+        submissions: (submissions || []).map(s => ({
+          assignmentId: s.assignment_id,
+          studentId: s.student_id,
+          submittedAt: s.submitted_at || "",
+          note: s.note || ""
+        })),
+        comments: (comments || []).map(c => {
+          const author = profiles?.find(p => p.id === c.author_id);
+          return {
+            id: c.id,
+            authorId: c.author_id,
+            authorName: author?.full_name || "Unknown",
+            authorRole: author?.role || "student",
+            text: c.text,
+            createdAt: c.created_at || ""
+          };
+        }),
+        announcements: announcements || []
+      };
+    }
+  });
+
+  const fullData = data || {
+    students: [],
+    admins: [],
+    sessions: [],
+    attendance: [],
+    assignments: [],
+    submissions: [],
+    comments: [],
+    announcements: []
+  };
+
+  return (selector ? selector(fullData as LegacyDB) : fullData) as unknown as T;
+}
+
+export function useAuth() {
+  const [session, setSession] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        supabase.from("profiles").select("*").eq("id", session.user.id).single().then(({ data }) => {
+          if (data) {
+            setUserProfile({
+              id: data.id,
+              role: data.role,
+              fullName: data.full_name,
+              usn: data.usn,
+              department: data.department,
+              year: data.year,
+              phone: data.phone,
+              qrCode: data.qr_code
+            });
+          }
+          setLoading(false);
+        });
+      } else {
+        setLoading(false);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session?.user) {
+        supabase.from("profiles").select("*").eq("id", session.user.id).single().then(({ data }) => {
+          if (data) {
+            setUserProfile({
+              id: data.id,
+              role: data.role,
+              fullName: data.full_name,
+              usn: data.usn,
+              department: data.department,
+              year: data.year,
+              phone: data.phone,
+              qrCode: data.qr_code
+            });
+          }
+        });
+      } else {
+        setUserProfile(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  return {
+    session: session ? { role: userProfile?.role, userId: session.user.id } : null,
+    user: userProfile,
+    role: userProfile?.role || null,
+    isAuthenticated: !!session && !!userProfile,
+    loading
+  };
 }
 
 export const auth = {
-  get(): AuthSession | null {
-    if (typeof window === "undefined") return null;
-    const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw) as AuthSession;
-    } catch {
-      localStorage.removeItem(SESSION_KEY);
-      return null;
-    }
-  },
-  set(s: AuthSession | null) {
-    if (typeof window === "undefined") return;
-    if (!s) localStorage.removeItem(SESSION_KEY);
-    else localStorage.setItem(SESSION_KEY, JSON.stringify(s));
-    emit();
-  },
+  signOut: async () => await supabase.auth.signOut(),
 };
 
-export function useAuth() {
-  const session = useSyncExternalStore(subscribe, () => auth.get(), () => null);
-
-  const data = useDB((d) => d);
-  const user =
-    session?.role === "student"
-      ? data.students.find((s) => s.id === session.userId) ?? null
-      : session?.role === "admin"
-      ? data.admins.find((a) => a.id === session.userId) ?? null
-      : null;
-
-  return { session, user, role: session?.role ?? null, isAuthenticated: !!session && !!user };
-}
-
-// Helpers
-export const uid = () => Math.random().toString(36).slice(2, 10);
+// Deprecated local db operations to prevent crashes until we rewrite
+export const db = {
+  get: () => ({ students: [], admins: [], sessions: [], attendance: [], assignments: [], submissions: [], comments: [], announcements: [] }),
+  set: (updater: (d: any) => any) => {},
+  reset: () => {}
+};

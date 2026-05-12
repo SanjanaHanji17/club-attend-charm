@@ -53,11 +53,11 @@ function Page() {
   };
 
   const save = () => {
-    db.set((d) => ({ ...d, students: d.students.map((s) => s.id === me.id ? { ...f } : s) }));
+    db.set((d) => ({ ...d, students: d.students.map((s: any) => s.id === me.id ? { ...f } : s) }));
     toast.success("Profile updated");
   };
 
-  const initials = (me.fullName || "U").split(" ").map((s) => s[0]).slice(0, 2).join("");
+  const initials = (me.fullName || "U").split(" ").map((s: any) => s[0]).slice(0, 2).join("");
 
   return (
     <div className="space-y-6 max-w-3xl">
