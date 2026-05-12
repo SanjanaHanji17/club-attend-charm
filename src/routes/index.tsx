@@ -1,131 +1,156 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Code2, Sparkles, BarChart3, Users, CalendarCheck, MessageSquare, ArrowRight, Github } from "lucide-react";
-import { useDB } from "@/lib/store";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Code2, ArrowRight, Sparkles, TerminalSquare, Users, CalendarDays, Mic, BellRing } from "lucide-react";
+import { useAuth, useDB } from "@/lib/store";
 
 export const Route = createFileRoute("/")({
-  component: Landing,
+  component: Index,
 });
 
-function Landing() {
-  const data = useDB((d) => d);
+function Index() {
+  const { isAuthenticated, role } = useAuth();
+  const data = useDB();
+  const dashPath = isAuthenticated ? (role === "admin" ? "/admin/dashboard" : "/student/dashboard") : "/login";
+
   const totalMembers = data.students.length;
   const totalSessions = data.sessions.length;
-  const possible = totalMembers * totalSessions;
-  const present = data.attendance.filter((a) => a.present).length;
-  const avgAttendance = possible > 0 ? Math.round((present / possible) * 100) : 0;
-  const stats = [
-    { k: totalMembers > 0 ? String(totalMembers) : "0", l: "Active members" },
-    { k: totalSessions > 0 ? String(totalSessions) : "0", l: "Sessions hosted" },
-    { k: `${avgAttendance}%`, l: "Avg. attendance" },
-    { k: "0.0", l: "Member rating" },
-  ];
+
+  // Active/live sessions
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const activeSessions = data.sessions
+    .filter((s: any) => new Date(s.date) >= today)
+    .sort((a: any, b: any) => +new Date(a.date) - +new Date(b.date));
+
+  // Announcements
+  const announcements = data.announcements || [];
+
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Floating orbs */}
-      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 rounded-full gradient-aurora opacity-30 blur-3xl animate-float" />
-      <div className="pointer-events-none absolute top-1/2 -right-40 w-[28rem] h-[28rem] rounded-full bg-accent/30 blur-3xl animate-float" style={{ animationDelay: "2s" }} />
-
-      {/* Nav */}
-      <header className="relative z-10 px-6 md:px-12 py-5 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl gradient-aurora grid place-items-center shadow-glow">
+      <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]" />
+      <div className="absolute top-0 right-0 w-[800px] h-[800px] gradient-aurora opacity-20 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/3 animate-pulse-slow pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/20 blur-[100px] rounded-full translate-y-1/3 -translate-x-1/3 pointer-events-none" />
+      
+      <header className="container mx-auto px-6 py-6 flex items-center justify-between relative z-10">
+        <div className="flex items-center gap-2.5 group cursor-pointer">
+          <div className="w-10 h-10 rounded-xl gradient-aurora grid place-items-center shadow-glow group-hover:scale-105 transition-transform duration-300">
             <Code2 className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-bold text-lg tracking-tight">CodeClub</span>
-        </Link>
-        <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-          <a href="#features" className="story-link">Features</a>
-          <a href="#dashboard" className="story-link">Dashboard</a>
-          <a href="#community" className="story-link">Community</a>
-        </nav>
-        <div className="flex items-center gap-2">
-          <Button asChild variant="ghost" size="sm"><Link to="/login">Sign in</Link></Button>
-          <Button asChild size="sm" className="gradient-primary text-primary-foreground border-0 shadow-glow">
-            <Link to="/register">Get started <ArrowRight className="w-4 h-4 ml-1" /></Link>
-          </Button>
+          <span className="font-bold text-xl tracking-tight">CodeClub</span>
         </div>
+        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+          <a href="#features" className="hover:text-foreground transition-colors">Features</a>
+          <a href="#sessions" className="hover:text-foreground transition-colors">Sessions</a>
+          <a href="#announcements" className="hover:text-foreground transition-colors">Announcements</a>
+        </nav>
+        <Button asChild className="gradient-primary text-primary-foreground border-0 shadow-glow hover-lift px-6 rounded-full">
+          <Link to={dashPath}>{isAuthenticated ? "Dashboard" : "Sign In"} <ArrowRight className="w-4 h-4 ml-2" /></Link>
+        </Button>
       </header>
 
-      {/* Hero */}
-      <section className="relative z-10 px-6 md:px-12 pt-12 md:pt-24 pb-16 max-w-6xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs animate-fade-in">
-          <Sparkles className="w-3.5 h-3.5 text-primary" />
-          <span className="text-muted-foreground">The premium attendance OS for coding clubs</span>
-        </div>
-        <h1 className="mt-6 text-4xl md:text-7xl font-bold tracking-tight leading-[1.05] animate-fade-in-up">
-          Run your <span className="gradient-text">coding club</span><br />like a product team.
+      <main className="container mx-auto px-6 pt-24 pb-32 relative z-10 text-center">
+        <Badge variant="outline" className="glass px-4 py-1.5 rounded-full text-sm font-medium mb-8 animate-fade-in-up border-primary/20 text-primary">
+          <Sparkles className="w-3.5 h-3.5 mr-2 inline" /> Empowering student developers
+        </Badge>
+        
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight max-w-4xl mx-auto leading-[1.1] animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+          The modern platform for our <span className="text-transparent bg-clip-text gradient-primary">Coding Club</span>
         </h1>
-        <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: "150ms" }}>
-          Track attendance, manage sessions, ship assignments and grow a community —
-          all from one beautifully crafted dashboard built for students and volunteers.
+        
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mt-8 mb-12 animate-fade-in-up leading-relaxed" style={{ animationDelay: "200ms" }}>
+          Manage attendance with QR codes, track assignments, join discussions, and stay updated with live sessions seamlessly.
         </p>
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-3 animate-fade-in-up" style={{ animationDelay: "300ms" }}>
-          <Button asChild size="lg" className="gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">
-            <Link to="/register">Create an account</Link>
-          </Button>
-          <Button asChild size="lg" variant="outline" className="glass border-border/60">
-            <Link to="/login">Sign in</Link>
-          </Button>
-        </div>
 
-        {/* Stat strip */}
-        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-          {stats.map((s, i) => (
-            <div key={i} className="glass rounded-2xl p-5 hover-lift animate-fade-in-up" style={{ animationDelay: `${400 + i * 80}ms` }}>
-              <p className="text-3xl font-bold gradient-text">{s.k}</p>
-              <p className="text-xs text-muted-foreground mt-1">{s.l}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="relative z-10 px-6 md:px-12 py-20 max-w-6xl mx-auto">
-        <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-center">Everything your club needs</h2>
-        <p className="text-muted-foreground text-center mt-3 max-w-xl mx-auto">From check-ins to community — beautifully integrated.</p>
-        <div className="mt-12 grid md:grid-cols-3 gap-5">
-          {[
-            { icon: CalendarCheck, t: "Sessions & Attendance", d: "Schedule sessions, mark attendance and watch streaks build automatically." },
-            { icon: BarChart3, t: "Live Analytics", d: "Animated dashboards with attendance %, trends and engagement metrics." },
-            { icon: Users, t: "Member Management", d: "Roles for students and volunteers with granular permissions." },
-            { icon: MessageSquare, t: "Discussion Hub", d: "An always-on community thread with replies, reactions and Q&A." },
-            { icon: Sparkles, t: "Assignments", d: "Drop assignments, track submissions, send gentle reminders." },
-            { icon: Github, t: "Project-ready", d: "Modern, responsive, themable UI built with React and Tailwind." },
-          ].map((f, i) => {
-            const Icon = f.icon;
-            return (
-              <div key={i} className="glass rounded-2xl p-6 hover-lift animate-fade-in-up" style={{ animationDelay: `${i * 60}ms` }}>
-                <div className="w-11 h-11 rounded-xl gradient-primary grid place-items-center shadow-glow mb-4">
-                  <Icon className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <h3 className="font-semibold">{f.t}</h3>
-                <p className="text-sm text-muted-foreground mt-1.5">{f.d}</p>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto mb-32 animate-fade-in-up" style={{ animationDelay: "400ms" }}>
+          <Card className="glass border-border/50 hover-lift bg-background/40 backdrop-blur-xl">
+            <CardContent className="p-6 text-left">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 text-primary">
+                <Users className="w-6 h-6" />
               </div>
-            );
-          })}
+              <h3 className="font-bold text-xl mb-1">{totalMembers}</h3>
+              <p className="text-sm text-muted-foreground">Active Members</p>
+            </CardContent>
+          </Card>
+          <Card className="glass border-border/50 hover-lift bg-background/40 backdrop-blur-xl">
+            <CardContent className="p-6 text-left">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 text-primary">
+                <CalendarDays className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-xl mb-1">{totalSessions}</h3>
+              <p className="text-sm text-muted-foreground">Sessions Hosted</p>
+            </CardContent>
+          </Card>
+          <Card className="glass border-border/50 hover-lift bg-background/40 backdrop-blur-xl">
+            <CardContent className="p-6 text-left">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 text-primary">
+                <TerminalSquare className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-xl mb-1">{data.assignments.length}</h3>
+              <p className="text-sm text-muted-foreground">Assignments</p>
+            </CardContent>
+          </Card>
+          <Card className="glass border-border/50 hover-lift bg-background/40 backdrop-blur-xl">
+            <CardContent className="p-6 text-left">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 text-primary">
+                <Code2 className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-xl mb-1">0%</h3>
+              <p className="text-sm text-muted-foreground">Average Attendance</p>
+            </CardContent>
+          </Card>
         </div>
-      </section>
 
-      {/* CTA */}
-      <section id="community" className="relative z-10 px-6 md:px-12 pb-24">
-        <div className="max-w-4xl mx-auto glass-strong rounded-3xl p-10 md:p-14 text-center shadow-elegant">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Ready to level up your club?</h2>
-          <p className="mt-3 text-muted-foreground">Sign in as a student or register as a volunteer with code <span className="px-2 py-0.5 rounded bg-primary/15 text-primary font-mono text-sm">admin123</span>.</p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg" className="gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">
-              <Link to="/register">Create account</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="glass">
-              <Link to="/login">Login</Link>
-            </Button>
+        {/* Live Sessions */}
+        <section id="sessions" className="max-w-5xl mx-auto text-left mb-24">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 grid place-items-center text-primary"><CalendarDays className="w-5 h-5" /></div>
+            <h2 className="text-3xl font-bold tracking-tight">Active & Upcoming Sessions</h2>
           </div>
-        </div>
-      </section>
+          {activeSessions.length === 0 ? (
+            <p className="text-muted-foreground glass p-6 rounded-xl border border-border/50 text-center">No active or upcoming sessions currently available.</p>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-4">
+              {activeSessions.map((s: any) => (
+                <Card key={s.id} className="glass border-border/50 hover-lift">
+                  <CardContent className="p-5">
+                    <h3 className="font-semibold text-lg">{s.title}</h3>
+                    <div className="flex flex-wrap gap-3 mt-4 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4" /> {new Date(s.date).toLocaleDateString()} {s.time}</span>
+                      <span className="flex items-center gap-1.5"><Mic className="w-4 h-4" /> {s.resourcePerson}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </section>
 
-      <footer className="relative z-10 px-6 md:px-12 pb-10 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} CodeClub. Crafted with care.
-      </footer>
+        {/* Announcements */}
+        <section id="announcements" className="max-w-5xl mx-auto text-left mb-16">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 grid place-items-center text-primary"><BellRing className="w-5 h-5" /></div>
+            <h2 className="text-3xl font-bold tracking-tight">Important Announcements</h2>
+          </div>
+          {announcements.length === 0 ? (
+            <p className="text-muted-foreground glass p-6 rounded-xl border border-border/50 text-center">No recent announcements.</p>
+          ) : (
+            <div className="grid gap-4">
+              {announcements.map((a: any) => (
+                <Card key={a.id} className="glass border-border/50 hover-lift">
+                  <CardContent className="p-5">
+                    <h3 className="font-semibold text-lg">{a.title}</h3>
+                    <p className="text-muted-foreground mt-2">{a.content}</p>
+                    <p className="text-xs text-muted-foreground mt-4">{new Date(a.created_at).toLocaleDateString()}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </section>
+
+      </main>
     </div>
   );
 }
