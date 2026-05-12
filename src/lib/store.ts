@@ -71,7 +71,7 @@ export interface Announcement {
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
 // For backwards compatibility while migrating components
-export function useDB() {
+export function useDB<T = any>(selector?: (d: any) => T): T {
   const { data } = useQuery({
     queryKey: ["app_data"],
     queryFn: async () => {
@@ -161,7 +161,7 @@ export function useDB() {
     }
   });
 
-  return data || {
+  const fullData = data || {
     students: [],
     admins: [],
     sessions: [],
@@ -171,6 +171,8 @@ export function useDB() {
     comments: [],
     announcements: []
   };
+
+  return selector ? selector(fullData) : fullData;
 }
 
 export function useAuth() {
