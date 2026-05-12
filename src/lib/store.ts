@@ -256,6 +256,6 @@ export const auth = {
 // Deprecated local db operations to prevent crashes until we rewrite
 export const db = {
   get: () => ({ students: [], admins: [], sessions: [], attendance: [], assignments: [], submissions: [], comments: [], announcements: [] }),
-  set: () => {},
+  set: (updater: (d: any) => any) => {},
   reset: () => {}
 };
