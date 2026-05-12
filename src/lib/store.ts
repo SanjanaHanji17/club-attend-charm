@@ -148,12 +148,12 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
           title: a.title,
           description: a.description || "",
           dueDate: a.due_date || "",
-          createdAt: a.created_at
+          createdAt: a.created_at || ""
         })),
         submissions: (submissions || []).map(s => ({
           assignmentId: s.assignment_id,
           studentId: s.student_id,
-          submittedAt: s.submitted_at,
+          submittedAt: s.submitted_at || "",
           note: s.note || ""
         })),
         comments: (comments || []).map(c => {
@@ -164,7 +164,7 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
             authorName: author?.full_name || "Unknown",
             authorRole: author?.role || "student",
             text: c.text,
-            createdAt: c.created_at
+            createdAt: c.created_at || ""
           };
         }),
         announcements: announcements || []
