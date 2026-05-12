@@ -141,7 +141,7 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
         attendance: (attendance || []).map(a => ({
           sessionId: a.session_id,
           studentId: a.student_id,
-          present: a.present
+          present: a.present || false
         })),
         assignments: (assignments || []).map(a => ({
           id: a.id,
