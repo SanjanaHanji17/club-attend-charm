@@ -46,6 +46,30 @@ export type Database = {
           },
         ]
       }
+      assignments: {
+        Row: {
+          created_at: string | null
+          description: string
+          due_date: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          due_date?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          due_date?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       attendance: {
         Row: {
           created_at: string | null
@@ -81,6 +105,45 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comments: {
+        Row: {
+          author_id: string
+          created_at: string | null
+          id: string
+          parent_id: string | null
+          text: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string | null
+          id?: string
+          parent_id?: string | null
+          text: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string | null
+          id?: string
+          parent_id?: string | null
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
             referencedColumns: ["id"]
           },
         ]
@@ -156,6 +219,45 @@ export type Database = {
           {
             foreignKeyName: "sessions_host_id_fkey"
             columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submissions: {
+        Row: {
+          assignment_id: string
+          id: string
+          note: string | null
+          student_id: string
+          submitted_at: string | null
+        }
+        Insert: {
+          assignment_id: string
+          id?: string
+          note?: string | null
+          student_id: string
+          submitted_at?: string | null
+        }
+        Update: {
+          assignment_id?: string
+          id?: string
+          note?: string | null
+          student_id?: string
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_student_id_fkey"
+            columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
