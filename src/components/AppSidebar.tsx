@@ -83,7 +83,7 @@ export function AppSidebar() {
           variant="ghost"
           size="sm"
           className="w-full justify-start gap-2 mt-1 text-muted-foreground hover:text-destructive"
-          onClick={() => { auth.set(null); navigate({ to: "/login" }); }}
+          onClick={() => { auth.signOut().then(() => { window.location.href = '/login'; }); navigate({ to: "/login" }); }}
         >
           <LogOut className="w-4 h-4" /> Logout
         </Button>

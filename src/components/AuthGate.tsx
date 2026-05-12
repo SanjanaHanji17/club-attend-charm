@@ -14,7 +14,7 @@ export function AuthGate({ role, children }: { role: Role; children: ReactNode }
     }
 
     if (s.role === role && !user) {
-      auth.set(null);
+      auth.signOut().then(() => { window.location.href = '/login'; });
       navigate({ to: "/login" });
       return;
     }
