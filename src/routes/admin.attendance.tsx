@@ -1,114 +1,170 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
-import { useDB, db } from "@/lib/store";
+import { useDB } from "@/lib/store";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Search, ClipboardCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { ClipboardCheck, QrCode, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Scanner } from '@yudiel/react-qr-scanner';
 
 export const Route = createFileRoute("/admin/attendance")({
   component: () => <AuthGate role="admin"><DashShell><Page /></DashShell></AuthGate>,
 });
 
 function Page() {
-  const data = useDB((d) => d);
-  const [sessionId, setSessionId] = useState<string>(data.sessions[0]?.id ?? "");
-  const [q, setQ] = useState("");
-  const session = data.sessions.find((s) => s.id === sessionId);
-  const list = data.students.filter((s) =>
-    [s.fullName, s.usn].join(" ").toLowerCase().includes(q.toLowerCase())
-  );
+  const data = useDB();
+  const [sid, setSid] = useState<string>("");
+  const [showScanner, setShowScanner] = useState(false);
 
-  const toggle = (studentId: string, present: boolean) => {
-    db.set((d) => {
-      const idx = d.attendance.findIndex((a) => a.sessionId === sessionId && a.studentId === studentId);
-      if (idx >= 0) d.attendance[idx] = { ...d.attendance[idx], present };
-      else d.attendance.push({ sessionId, studentId, present });
-      return { ...d, attendance: [...d.attendance] };
-    });
+  // Default to most recent session
+  useEffect(() => {
+    if (!sid && data.sessions.length > 0) {
+      setSid(data.sessions[0].id);
+    }
+  }, [data.sessions, sid]);
+
+  const toggle = async (att: any, present: boolean) => {
+    if (!sid) return;
+    const { error } = await supabase.from("attendance")
+      .upsert({ session_id: sid, student_id: att.id, present }, { onConflict: "session_id,student_id" });
+    if (error) return toast.error(error.message);
+    toast.success("Attendance updated");
+    window.location.reload();
   };
 
-  const markAll = (present: boolean) => {
-    db.set((d) => {
-      const others = d.attendance.filter((a) => a.sessionId !== sessionId);
-      const next = d.students.map((s) => ({ sessionId, studentId: s.id, present }));
-      return { ...d, attendance: [...others, ...next] };
-    });
-    toast.success(present ? "All marked present" : "All marked absent");
+  const markAll = async (present: boolean) => {
+    if (!sid) return;
+    if (!confirm(`Mark all ${present ? "Present" : "Absent"}?`)) return;
+    
+    const records = data.students.map((s: any) => ({
+      session_id: sid,
+      student_id: s.id,
+      present
+    }));
+
+    const { error } = await supabase.from("attendance")
+      .upsert(records, { onConflict: "session_id,student_id" });
+    if (error) return toast.error(error.message);
+    toast.success(`All students marked ${present ? "present" : "absent"}`);
+    window.location.reload();
   };
+
+  const handleScan = async (result: any) => {
+    if (!result || !result[0]) return;
+    const scannedQr = result[0].rawValue;
+    
+    const student = data.students.find((s: any) => s.qrCode === scannedQr);
+    if (!student) {
+      toast.error("Invalid QR Code or student not found!");
+      return;
+    }
+
+    const alreadyMarked = data.attendance.find((a: any) => a.sessionId === sid && a.studentId === student.id && a.present);
+    if (alreadyMarked) {
+      toast.info(`${student.fullName} is already marked present.`);
+      setShowScanner(false);
+      return;
+    }
+
+    const { error } = await supabase.from("attendance")
+      .upsert({ session_id: sid, student_id: student.id, present: true }, { onConflict: "session_id,student_id" });
+    
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(`Attendance marked successfully for ${student.fullName}`);
+    }
+    
+    setShowScanner(false);
+    window.location.reload();
+  };
+
+  const session = data.sessions.find((x: any) => x.id === sid);
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2"><ClipboardCheck className="w-7 h-7 text-primary" /> Mark Attendance</h1>
-        <p className="text-muted-foreground">Select a session and mark students.</p>
-      </div>
-
-      <Card className="glass-strong border-border/50">
-        <CardContent className="p-5 grid md:grid-cols-3 gap-3">
-          <div className="space-y-1.5 md:col-span-2">
-            <Label>Session</Label>
-            <Select value={sessionId} onValueChange={setSessionId}>
-              <SelectTrigger className="glass"><SelectValue /></SelectTrigger>
-              <SelectContent className="glass-strong">
-                {data.sessions.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.title} — {new Date(s.date).toLocaleDateString()}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Search student</Label>
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input className="glass pl-9" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Name or USN" />
-            </div>
-          </div>
-          <div className="md:col-span-3 flex gap-2">
-            <button onClick={() => markAll(true)} className="text-xs px-3 py-1.5 rounded-lg bg-success/15 text-success hover:bg-success/25 transition">Mark all present</button>
-            <button onClick={() => markAll(false)} className="text-xs px-3 py-1.5 rounded-lg bg-destructive/15 text-destructive hover:bg-destructive/25 transition">Mark all absent</button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {session && (
-        <div className="glass rounded-2xl p-4 text-sm">
-          <p className="font-medium">{session.title}</p>
-          <p className="text-muted-foreground text-xs">{session.description}</p>
+      <div className="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2"><ClipboardCheck className="w-8 h-8 text-primary" /> Attendance</h1>
+          <p className="text-muted-foreground mt-1">Track and manage session attendance</p>
         </div>
+      </div>
+      
+      <div className="flex flex-col sm:flex-row gap-4 items-end glass-strong p-4 rounded-xl border-border/50">
+        <div className="w-full sm:w-80 space-y-1.5">
+          <label className="text-sm font-medium">Select Session</label>
+          <Select value={sid} onValueChange={setSid}>
+            <SelectTrigger className="glass bg-background/50"><SelectValue placeholder="Choose a session" /></SelectTrigger>
+            <SelectContent>
+              {data.sessions.map((s: any) => (
+                <SelectItem key={s.id} value={s.id}>{s.title} ({new Date(s.date).toLocaleDateString()})</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {session && (
+          <div className="flex gap-2 w-full sm:w-auto mt-4 sm:mt-0">
+            <Button onClick={() => markAll(true)} variant="outline" className="flex-1 sm:flex-none glass hover:bg-success/10 hover:text-success border-border/60">Mark All Present</Button>
+            <Button onClick={() => setShowScanner(!showScanner)} className="flex-1 sm:flex-none gradient-primary text-primary-foreground border-0 shadow-glow">
+              <QrCode className="w-4 h-4 mr-2" /> Scan QR
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {showScanner && session && (
+        <Card className="glass border-border/50 max-w-md mx-auto overflow-hidden animate-scale-in">
+          <CardContent className="p-0">
+            <div className="bg-muted p-3 text-center text-sm font-medium border-b border-border/50">
+              Scanning for: {session.title}
+            </div>
+            <div className="aspect-square">
+              <Scanner onScan={handleScan} />
+            </div>
+            <div className="p-3 text-center">
+              <Button variant="ghost" size="sm" onClick={() => setShowScanner(false)}>Close Scanner</Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {data.sessions.length === 0 && (
-        <p className="text-sm text-muted-foreground text-center py-10">No sessions added yet</p>
+      {!session ? (
+        <p className="text-muted-foreground text-center py-10 glass rounded-xl">Please select a session to view attendance.</p>
+      ) : (
+        <Card className="glass border-border/50 overflow-hidden">
+          <div className="p-4 border-b border-border/50 bg-muted/20 flex justify-between items-center">
+            <h3 className="font-medium flex items-center gap-2"><CalendarDays className="w-4 h-4 text-muted-foreground" /> Student List</h3>
+            <Badge variant="outline" className="glass">{data.students.length} Total</Badge>
+          </div>
+          <div className="divide-y divide-border/50">
+            {data.students.map((st: any) => {
+              const att = data.attendance.find((a: any) => a.sessionId === sid && a.studentId === st.id);
+              const present = att?.present;
+              return (
+                <div key={st.id} className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors">
+                  <div>
+                    <p className="font-medium text-foreground">{st.fullName}</p>
+                    <p className="text-xs text-muted-foreground">{st.usn} • {st.department}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {present ? (
+                      <Badge className="bg-success/20 text-success hover:bg-success/30 border-success/30 transition-colors cursor-pointer" onClick={() => toggle(st, false)}>Present</Badge>
+                    ) : (
+                      <Badge className="bg-destructive/20 text-destructive hover:bg-destructive/30 border-destructive/30 transition-colors cursor-pointer" onClick={() => toggle(st, true)}>Absent</Badge>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {data.students.length === 0 && <p className="p-6 text-center text-muted-foreground">No students registered yet.</p>}
+          </div>
+        </Card>
       )}
-      {data.sessions.length > 0 && data.students.length === 0 && (
-        <p className="text-sm text-muted-foreground text-center py-10">No students registered yet</p>
-      )}
-      <div className="grid md:grid-cols-2 gap-3">
-        {data.sessions.length > 0 && list.map((s, i) => {
-          const att = data.attendance.find((a) => a.sessionId === sessionId && a.studentId === s.id);
-          const present = att?.present ?? false;
-          return (
-            <div key={s.id} className="glass rounded-2xl p-4 flex items-center justify-between hover-lift animate-fade-in-up" style={{ animationDelay: `${i * 30}ms` }}>
-              <div>
-                <p className="font-medium">{s.fullName}</p>
-                <p className="text-xs text-muted-foreground font-mono">{s.usn} · {s.department}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs ${present ? "text-success" : "text-muted-foreground"}`}>{present ? "Present" : "Absent"}</span>
-                <Switch checked={present} onCheckedChange={(v) => toggle(s.id, v)} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
