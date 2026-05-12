@@ -134,7 +134,7 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
           title: s.title,
           date: s.date,
           time: s.time,
-          host: s.host_id,
+          host: s.host_id || "",
           resourcePerson: s.resource_person,
           description: s.description || ""
         })),
