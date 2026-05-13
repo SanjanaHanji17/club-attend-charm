@@ -26,7 +26,7 @@ function Page() {
 
   const create = () => {
     if (!f.title || !f.dueDate) return toast.error("Title and due date are required");
-    const a: Assignment = { id: uid(), created_at: new Date().toISOString(), ...f };
+    const a: Assignment = { id: uid(), created_at: new Date().toISOString(), due_date: f.dueDate, ...f };
     db.set((d) => ({ ...d, assignments: [a, ...d.assignments] }));
     toast.success("Assignment created");
     setOpen(false);
