@@ -1,33 +1,48 @@
 import { useState } from "react";
-import { useAuth, useDB, db, uid } from "@/lib/store";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth, useDB } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Send, MessagesSquare } from "lucide-react";
+import { Send, MessagesSquare, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function DiscussionBoard() {
   const { user, role } = useAuth();
   const data = useDB((d) => d);
+  const qc = useQueryClient();
   const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
   if (!user || !role) return null;
 
-  const post = () => {
+  const post = async () => {
     if (!text.trim()) return;
-    const c = {
-      id: uid(),
-      authorId: user.id,
-      authorName: user.fullName,
-      authorRole: role,
+    setBusy(true);
+    const { error } = await supabase.from("comments").insert({
+      author_id: user.id,
       text: text.trim(),
-      createdAt: new Date().toISOString(),
-    };
-    db.set((d) => ({ ...d, comments: [c, ...d.comments] }));
+    });
+    setBusy(false);
+    if (error) return toast.error(error.message);
     setText("");
     toast.success("Posted!");
+    qc.invalidateQueries({ queryKey: ["app_data"] });
   };
+
+  const remove = async (id: string) => {
+    if (!confirm("Delete this post?")) return;
+    const { error } = await supabase.from("comments").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Deleted");
+    qc.invalidateQueries({ queryKey: ["app_data"] });
+  };
+
+  const sorted = [...(data.comments || [])].sort(
+    (a: any, b: any) => +new Date(b.createdAt) - +new Date(a.createdAt)
+  );
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -46,16 +61,17 @@ export function DiscussionBoard() {
           />
           <div className="flex items-center justify-between mt-3">
             <span className="text-xs text-muted-foreground">{text.length}/1000</span>
-            <Button onClick={post} className="gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">
-              <Send className="w-4 h-4 mr-1.5" /> Post
+            <Button onClick={post} disabled={busy} className="gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">
+              <Send className="w-4 h-4 mr-1.5" /> {busy ? "Posting…" : "Post"}
             </Button>
           </div>
         </CardContent>
       </Card>
 
       <div className="space-y-3">
-        {data.comments.map((c, i) => {
-          const initials = c.authorName.split(" ").map((s) => s[0]).slice(0, 2).join("");
+        {sorted.map((c: any, i: number) => {
+          const initials = (c.authorName || "?").split(" ").map((s: string) => s[0]).slice(0, 2).join("");
+          const canDelete = c.authorId === user.id;
           return (
             <Card key={c.id} className="glass border-border/50 hover-lift animate-fade-in-up" style={{ animationDelay: `${i * 50}ms` }}>
               <CardContent className="p-5 flex gap-3">
@@ -65,8 +81,17 @@ export function DiscussionBoard() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-medium">{c.authorName}</span>
-                    {c.authorRole === "admin" && <Badge className="bg-accent/20 text-accent border-accent/30">Volunteer</Badge>}
+                    {c.authorRole === "admin" ? (
+                      <Badge className="bg-accent/20 text-accent border-accent/30">Admin</Badge>
+                    ) : (
+                      <Badge variant="outline" className="glass">Student</Badge>
+                    )}
                     <span className="text-xs text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</span>
+                    {canDelete && (
+                      <Button size="icon" variant="ghost" className="h-6 w-6 ml-auto text-destructive" onClick={() => remove(c.id)}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
                   </div>
                   <p className="text-sm mt-1.5 whitespace-pre-wrap break-words">{c.text}</p>
                 </div>
@@ -74,7 +99,7 @@ export function DiscussionBoard() {
             </Card>
           );
         })}
-        {!data.comments.length && <p className="text-muted-foreground text-center py-10">No posts yet — be the first!</p>}
+        {!sorted.length && <p className="text-muted-foreground text-center py-10">No posts yet — be the first!</p>}
       </div>
     </div>
   );

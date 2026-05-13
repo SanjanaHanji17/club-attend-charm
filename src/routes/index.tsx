@@ -45,9 +45,16 @@ function Index() {
           <a href="#sessions" className="hover:text-foreground transition-colors">Sessions</a>
           <a href="#announcements" className="hover:text-foreground transition-colors">Announcements</a>
         </nav>
-        <Button asChild className="gradient-primary text-primary-foreground border-0 shadow-glow hover-lift px-6 rounded-full">
-          <Link to={dashPath}>{isAuthenticated ? "Dashboard" : "Sign In"} <ArrowRight className="w-4 h-4 ml-2" /></Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {!isAuthenticated && (
+            <Button asChild variant="outline" className="glass border-primary/30 hover-lift px-5 rounded-full">
+              <Link to="/register">Register</Link>
+            </Button>
+          )}
+          <Button asChild className="gradient-primary text-primary-foreground border-0 shadow-glow hover-lift px-6 rounded-full">
+            <Link to={dashPath}>{isAuthenticated ? "Dashboard" : "Sign In"} <ArrowRight className="w-4 h-4 ml-2" /></Link>
+          </Button>
+        </div>
       </header>
 
       <main className="container mx-auto px-6 pt-24 pb-32 relative z-10 text-center">

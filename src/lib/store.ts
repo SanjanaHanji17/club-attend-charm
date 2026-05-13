@@ -148,13 +148,15 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
           title: a.title,
           description: a.description || "",
           dueDate: a.due_date || "",
-          createdAt: a.created_at || ""
+          createdAt: a.created_at || "",
+          file_url: (a as any).file_url || null,
         })),
         submissions: (submissions || []).map(s => ({
           assignmentId: s.assignment_id,
           studentId: s.student_id,
           submittedAt: s.submitted_at || "",
-          note: s.note || ""
+          note: s.note || "",
+          file_url: (s as any).file_url || null,
         })),
         comments: (comments || []).map(c => {
           const author = profiles?.find(p => p.id === c.author_id);

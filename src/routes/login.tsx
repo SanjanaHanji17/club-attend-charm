@@ -1,13 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Code2, Eye, EyeOff, KeyRound, ShieldCheck } from "lucide-react";
 import { loginWithUsn } from "@/lib/supabase-auth";
+import { resetPasswordByUsn } from "@/lib/password.functions";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -62,6 +64,64 @@ function PasswordField({ value, onChange, id }: { value: string; onChange: (v: s
   );
 }
 
+function ForgotPassword({ role }: { role: "student" | "admin" }) {
+  const [open, setOpen] = useState(false);
+  const [usn, setUsn] = useState("");
+  const [pw, setPw] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [loading, setLoading] = useState(false);
+  const reset = useServerFn(resetPasswordByUsn);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pw.length < 6) return toast.error("Password must be at least 6 characters");
+    if (pw !== confirm) return toast.error("Passwords do not match");
+    if (!usn.trim()) return toast.error("USN is required");
+    setLoading(true);
+    try {
+      await reset({ data: { usn: usn.trim(), role, newPassword: pw } });
+      toast.success("Password updated. You can now sign in.");
+      setOpen(false);
+      setUsn(""); setPw(""); setConfirm("");
+    } catch (err: any) {
+      toast.error(err?.message || "Could not reset password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button type="button" className="text-xs text-primary story-link">Forgot password?</button>
+      </DialogTrigger>
+      <DialogContent className="glass-strong border-border/60">
+        <DialogHeader>
+          <DialogTitle>Reset password</DialogTitle>
+          <DialogDescription>Enter your USN and a new password (minimum 6 characters).</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={submit} className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>USN</Label>
+            <Input className="glass" value={usn} onChange={(e) => setUsn(e.target.value)} required />
+          </div>
+          <div className="space-y-1.5">
+            <Label>New Password</Label>
+            <Input type="password" className="glass" value={pw} onChange={(e) => setPw(e.target.value)} required minLength={6} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Confirm Password</Label>
+            <Input type="password" className="glass" value={confirm} onChange={(e) => setConfirm(e.target.value)} required minLength={6} />
+          </div>
+          <Button type="submit" disabled={loading} className="w-full gradient-primary text-primary-foreground border-0">
+            {loading ? "Updating…" : "Update password"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function StudentLogin() {
   const navigate = useNavigate();
   const [usn, setUsn] = useState("");
@@ -88,7 +148,10 @@ function StudentLogin() {
         <Input id="usn" value={usn} onChange={(e) => setUsn(e.target.value)} placeholder="Your USN" className="glass" required />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="spw">Password</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="spw">Password</Label>
+          <ForgotPassword role="student" />
+        </div>
         <PasswordField id="spw" value={password} onChange={setPassword} />
       </div>
       <Button type="submit" disabled={loading} className="w-full gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">
@@ -124,7 +187,10 @@ function AdminLogin() {
         <Input id="ausn" value={usn} onChange={(e) => setUsn(e.target.value)} placeholder="Your USN" className="glass" required />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="apw">Password</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="apw">Password</Label>
+          <ForgotPassword role="admin" />
+        </div>
         <PasswordField id="apw" value={password} onChange={setPassword} />
       </div>
       <Button type="submit" disabled={loading} className="w-full gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">

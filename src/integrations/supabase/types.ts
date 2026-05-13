@@ -51,6 +51,7 @@ export type Database = {
           created_at: string | null
           description: string
           due_date: string | null
+          file_url: string | null
           id: string
           title: string
         }
@@ -58,6 +59,7 @@ export type Database = {
           created_at?: string | null
           description: string
           due_date?: string | null
+          file_url?: string | null
           id?: string
           title: string
         }
@@ -65,6 +67,7 @@ export type Database = {
           created_at?: string | null
           description?: string
           due_date?: string | null
+          file_url?: string | null
           id?: string
           title?: string
         }
@@ -228,6 +231,7 @@ export type Database = {
       submissions: {
         Row: {
           assignment_id: string
+          file_url: string | null
           id: string
           note: string | null
           student_id: string
@@ -235,6 +239,7 @@ export type Database = {
         }
         Insert: {
           assignment_id: string
+          file_url?: string | null
           id?: string
           note?: string | null
           student_id: string
@@ -242,6 +247,7 @@ export type Database = {
         }
         Update: {
           assignment_id?: string
+          file_url?: string | null
           id?: string
           note?: string | null
           student_id?: string

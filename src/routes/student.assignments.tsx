@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
-import { useAuth, useDB, db } from "@/lib/store";
+import { useAuth, useDB } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, CheckCircle2, Clock, FileText, Send } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, FileText, Send, Paperclip } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/student/assignments")({
@@ -24,10 +27,10 @@ function Page() {
   }
 
   const me = user;
-  const items = data.assignments.map((a) => ({
+  const items = data.assignments.map((a: any) => ({
     ...a,
-    submitted: !!data.submissions.find((s) => s.assignmentId === a.id && s.studentId === me.id),
-    overdue: new Date(a.dueDate) < today,
+    submitted: !!data.submissions.find((s: any) => s.assignmentId === a.id && s.studentId === me.id),
+    overdue: a.dueDate ? new Date(a.dueDate) < today : false,
   }));
   const current = items.filter((a) => !a.overdue);
   const previous = items.filter((a) => a.overdue);
@@ -59,36 +62,84 @@ function List({ items, meId }: { items: any[]; meId: string }) {
   return (
     <div className="grid md:grid-cols-2 gap-4">
       {items.map((a, i) => (
-        <Card key={a.id} className="glass border-border/50 hover-lift animate-fade-in-up" style={{ animationDelay: `${i * 60}ms` }}>
-          <CardContent className="p-5">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl gradient-primary grid place-items-center shrink-0"><FileText className="w-5 h-5 text-primary-foreground" /></div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-semibold truncate">{a.title}</h3>
-                  {a.submitted ? (
-                    <Badge className="bg-success/20 text-success border-success/30"><CheckCircle2 className="w-3 h-3 mr-1" /> Submitted</Badge>
-                  ) : (
-                    <Badge className="bg-warning/20 text-warning border-warning/30"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">{a.description}</p>
-                <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> Due {new Date(a.dueDate).toLocaleDateString()}</span>
-                  {!a.submitted && (
-                    <Button size="sm" variant="outline" className="glass" onClick={() => {
-                      db.set((d) => ({ ...d, submissions: [...d.submissions, { assignmentId: a.id, studentId: meId, submittedAt: new Date().toISOString(), note: "Submitted via dashboard" }] }));
-                      toast.success("Marked as submitted");
-                    }}>
-                      <Send className="w-3.5 h-3.5 mr-1" /> Submit
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <AssignmentCard key={a.id} a={a} meId={meId} delay={i * 60} />
       ))}
     </div>
+  );
+}
+
+function AssignmentCard({ a, meId, delay }: { a: any; meId: string; delay: number }) {
+  const qc = useQueryClient();
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    if (a.overdue) return toast.error("Submission deadline has passed");
+    setBusy(true);
+    try {
+      let file_url: string | null = null;
+      if (file) {
+        const path = `${meId}/${a.id}-${Date.now()}-${file.name}`;
+        const { error: upErr } = await supabase.storage.from("submissions").upload(path, file);
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("submissions").getPublicUrl(path);
+        file_url = pub.publicUrl;
+      }
+      const { error } = await supabase.from("submissions").insert({
+        assignment_id: a.id,
+        student_id: meId,
+        note: file ? "File submission" : "Submitted via dashboard",
+        file_url,
+      });
+      if (error) throw error;
+      toast.success("Submitted");
+      setFile(null);
+      qc.invalidateQueries({ queryKey: ["app_data"] });
+    } catch (e: any) {
+      toast.error(e.message || "Failed to submit");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card className="glass border-border/50 hover-lift animate-fade-in-up" style={{ animationDelay: `${delay}ms` }}>
+      <CardContent className="p-5">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl gradient-primary grid place-items-center shrink-0"><FileText className="w-5 h-5 text-primary-foreground" /></div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="font-semibold truncate">{a.title}</h3>
+              {a.submitted ? (
+                <Badge className="bg-success/20 text-success border-success/30"><CheckCircle2 className="w-3 h-3 mr-1" /> Submitted</Badge>
+              ) : (
+                <Badge className="bg-warning/20 text-warning border-warning/30"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">{a.description}</p>
+            {a.file_url && (
+              <a href={a.file_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary mt-2 story-link">
+                <Paperclip className="w-3 h-3" /> Assignment file
+              </a>
+            )}
+            <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground gap-2 flex-wrap">
+              <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> Due {a.dueDate ? new Date(a.dueDate).toLocaleDateString() : "—"}</span>
+            </div>
+            {!a.submitted && (
+              a.overdue ? (
+                <p className="text-xs text-destructive mt-3">Submission deadline has passed</p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  <Input type="file" className="glass h-9" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+                  <Button size="sm" disabled={busy} onClick={submit} className="w-full gradient-primary text-primary-foreground border-0">
+                    <Send className="w-3.5 h-3.5 mr-1" /> {busy ? "Submitting…" : (file ? "Submit file" : "Submit")}
+                  </Button>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
