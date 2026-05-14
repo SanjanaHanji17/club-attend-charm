@@ -58,7 +58,7 @@ function Page() {
   const { user } = useAuth();
   const data = useDB((d) => d);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
-  const [qrValue, setQrValue] = useState<string>("");
+  
 
   useEffect(() => {
     if (!user) return;
