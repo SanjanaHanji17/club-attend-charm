@@ -85,6 +85,7 @@ interface LegacyDB {
 export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
   const { data } = useQuery({
     queryKey: ["app_data"],
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const [
         { data: profiles },
@@ -93,7 +94,8 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
         { data: assignments },
         { data: submissions },
         { data: comments },
-        { data: announcements }
+        { data: announcements },
+        { data: feedback }
       ] = await Promise.all([
         supabase.from("profiles").select("*"),
         supabase.from("sessions").select("*"),
@@ -101,7 +103,8 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
         supabase.from("assignments").select("*"),
         supabase.from("submissions").select("*"),
         supabase.from("comments").select("*"),
-        supabase.from("announcements").select("*")
+        supabase.from("announcements").select("*"),
+        (supabase.from as any)("feedback").select("*")
       ]);
       
       const students = profiles?.filter(p => p.role === "student").map(p => ({
