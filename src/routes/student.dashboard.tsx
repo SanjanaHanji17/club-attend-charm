@@ -121,12 +121,70 @@ function Page() {
             <h1 className="text-3xl md:text-4xl font-bold mt-1">Hi, {(student.fullName || "Student").split(" ")[0]} 👋</h1>
             <p className="text-muted-foreground mt-2 max-w-xl">Your live coding club journey.</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="glass">{student.department || "No data available"}</Badge>
-            <Badge variant="outline" className="glass">{student.year ? `${student.year} year` : "No data available"}</Badge>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="outline" className="glass">{student.department || "Department not set"}</Badge>
+            <Badge variant="outline" className="glass">{student.year ? `${student.year} year` : "Year not set"}</Badge>
+            {student.usn && <Badge variant="outline" className="glass">USN: {student.usn}</Badge>}
           </div>
         </div>
       </div>
+
+      {data.announcements && data.announcements.length > 0 && (
+        <Card className="glass border-primary/40 animate-fade-in-up">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Megaphone className="w-4 h-4 text-primary" /> Announcements
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[...data.announcements]
+              .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+              .slice(0, 3)
+              .map((a: any) => (
+                <div key={a.id} className="glass rounded-xl p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-semibold text-sm">{a.title}</p>
+                    <span className="text-[10px] text-muted-foreground">{new Date(a.created_at).toLocaleString()}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{a.content}</p>
+                </div>
+              ))}
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="glass border-border/50 animate-fade-in-up">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <QrCode className="w-4 h-4 text-primary" /> My QR Code
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col sm:flex-row items-center gap-5">
+          <div className="bg-white p-3 rounded-xl shadow-glow">
+            {qrDataUrl ? (
+              <img src={qrDataUrl} alt="Your attendance QR" className="w-44 h-44" />
+            ) : (
+              <div className="w-44 h-44 grid place-items-center text-xs text-muted-foreground">Generating...</div>
+            )}
+          </div>
+          <div className="flex-1 space-y-2 text-center sm:text-left">
+            <p className="text-sm text-muted-foreground">Show this QR to admins for attendance. It is unique to your account and stays the same across logins.</p>
+            <p className="text-xs text-muted-foreground break-all">USN: <span className="font-mono">{student.usn}</span></p>
+            <Button
+              disabled={!qrDataUrl}
+              onClick={() => {
+                const a = document.createElement("a");
+                a.href = qrDataUrl;
+                a.download = `qr-${student.usn || student.id}.png`;
+                a.click();
+              }}
+              className="gradient-primary text-primary-foreground border-0 shadow-glow"
+            >
+              <Download className="w-4 h-4 mr-2" /> Download QR
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard icon={CheckCircle2} label="Attended" value={attended} color="text-success" delay={0} />
