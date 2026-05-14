@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
-import { useDB, db } from "@/lib/store";
+import { useDB, useRefreshData } from "@/lib/store";
+import { deleteStudentById } from "@/lib/admin.functions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,7 +18,10 @@ export const Route = createFileRoute("/admin/students")({
 
 function Page() {
   const data = useDB((d) => d);
+  const refresh = useRefreshData();
+  const deleteStudent = useServerFn(deleteStudentById);
   const [q, setQ] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const list = data.students.filter((s) =>
     [s.fullName, s.usn, s.department, s.year].join(" ").toLowerCase().includes(q.toLowerCase())
   );
@@ -59,14 +64,23 @@ function Page() {
                 </div>
                 <Button
                   size="sm" variant="ghost"
+                  disabled={deletingId === s.id}
                   className="w-full mt-3 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => {
-                    if (!confirm(`Remove ${s.fullName}?`)) return;
-                    db.set((d) => ({ ...d, students: d.students.filter((x: any) => x.id !== s.id) }));
-                    toast.success("Student removed");
+                  onClick={async () => {
+                    if (!confirm(`Remove ${s.fullName}? This will permanently delete their account and all related data.`)) return;
+                    setDeletingId(s.id);
+                    try {
+                      await deleteStudent({ data: { studentId: s.id } });
+                      await refresh();
+                      toast.success("Student removed");
+                    } catch (err: any) {
+                      toast.error(err?.message || "Failed to delete");
+                    } finally {
+                      setDeletingId(null);
+                    }
                   }}
                 >
-                  <Trash2 className="w-3.5 h-3.5 mr-1" /> Remove
+                  <Trash2 className="w-3.5 h-3.5 mr-1" /> {deletingId === s.id ? "Removing…" : "Remove"}
                 </Button>
               </CardContent>
             </Card>

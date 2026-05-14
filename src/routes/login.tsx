@@ -52,12 +52,12 @@ function LoginPage() {
   );
 }
 
-function PasswordField({ value, onChange, id }: { value: string; onChange: (v: string) => void; id: string }) {
+function PasswordField({ value, onChange, id, autoComplete = "current-password" }: { value: string; onChange: (v: string) => void; id: string; autoComplete?: string }) {
   const [show, setShow] = useState(false);
   return (
     <div className="relative">
-      <Input id={id} type={show ? "text" : "password"} value={value} onChange={(e) => onChange(e.target.value)} className="glass pr-10" required />
-      <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+      <Input id={id} name={id} type={show ? "text" : "password"} autoComplete={autoComplete} value={value} onChange={(e) => onChange(e.target.value)} className="glass pr-10" required />
+      <button type="button" tabIndex={-1} onClick={() => setShow((s) => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
         {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
       </button>
     </div>
@@ -145,7 +145,7 @@ function StudentLogin() {
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="usn">USN</Label>
-        <Input id="usn" value={usn} onChange={(e) => setUsn(e.target.value)} placeholder="Your USN" className="glass" required />
+        <Input id="usn" name="usn" autoComplete="username" value={usn} onChange={(e) => setUsn(e.target.value)} placeholder="Your USN" className="glass" required />
       </div>
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
@@ -184,7 +184,7 @@ function AdminLogin() {
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="ausn">Admin USN</Label>
-        <Input id="ausn" value={usn} onChange={(e) => setUsn(e.target.value)} placeholder="Your USN" className="glass" required />
+        <Input id="ausn" name="ausn" autoComplete="username" value={usn} onChange={(e) => setUsn(e.target.value)} placeholder="Your USN" className="glass" required />
       </div>
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">

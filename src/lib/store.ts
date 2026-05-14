@@ -85,6 +85,7 @@ interface LegacyDB {
 export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
   const { data } = useQuery({
     queryKey: ["app_data"],
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const [
         { data: profiles },
@@ -93,7 +94,8 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
         { data: assignments },
         { data: submissions },
         { data: comments },
-        { data: announcements }
+        { data: announcements },
+        { data: feedback }
       ] = await Promise.all([
         supabase.from("profiles").select("*"),
         supabase.from("sessions").select("*"),
@@ -101,7 +103,8 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
         supabase.from("assignments").select("*"),
         supabase.from("submissions").select("*"),
         supabase.from("comments").select("*"),
-        supabase.from("announcements").select("*")
+        supabase.from("announcements").select("*"),
+        (supabase.from as any)("feedback").select("*")
       ]);
       
       const students = profiles?.filter(p => p.role === "student").map(p => ({
@@ -169,7 +172,18 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
             createdAt: c.created_at || ""
           };
         }),
-        announcements: announcements || []
+        announcements: (announcements || []).map((a: any) => {
+          const author = profiles?.find(p => p.id === a.author_id);
+          return { ...a, author_name: author?.full_name || "Admin", author_role: author?.role || "admin" };
+        }),
+        feedback: (feedback || []).map((f: any) => ({
+          id: f.id,
+          sessionId: f.session_id,
+          studentId: f.student_id,
+          rating: f.rating,
+          comment: f.comment,
+          createdAt: f.created_at,
+        })),
       };
     }
   });
@@ -182,11 +196,18 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
     assignments: [],
     submissions: [],
     comments: [],
-    announcements: []
+    announcements: [],
+    feedback: []
   };
 
   return (selector ? selector(fullData as LegacyDB) : fullData) as unknown as T;
 }
+
+export function useRefreshData() {
+  const qc = useQueryClient();
+  return () => qc.invalidateQueries({ queryKey: ["app_data"] });
+}
+
 
 export function useAuth() {
   const [session, setSession] = useState<any>(null);
