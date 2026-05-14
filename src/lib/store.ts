@@ -203,6 +203,12 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
   return (selector ? selector(fullData as LegacyDB) : fullData) as unknown as T;
 }
 
+export function useRefreshData() {
+  const qc = useQueryClient();
+  return () => qc.invalidateQueries({ queryKey: ["app_data"] });
+}
+
+
 export function useAuth() {
   const [session, setSession] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
