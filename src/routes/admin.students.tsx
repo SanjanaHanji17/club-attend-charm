@@ -64,14 +64,23 @@ function Page() {
                 </div>
                 <Button
                   size="sm" variant="ghost"
+                  disabled={deletingId === s.id}
                   className="w-full mt-3 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => {
-                    if (!confirm(`Remove ${s.fullName}?`)) return;
-                    db.set((d) => ({ ...d, students: d.students.filter((x: any) => x.id !== s.id) }));
-                    toast.success("Student removed");
+                  onClick={async () => {
+                    if (!confirm(`Remove ${s.fullName}? This will permanently delete their account and all related data.`)) return;
+                    setDeletingId(s.id);
+                    try {
+                      await deleteStudent({ data: { studentId: s.id } });
+                      await refresh();
+                      toast.success("Student removed");
+                    } catch (err: any) {
+                      toast.error(err?.message || "Failed to delete");
+                    } finally {
+                      setDeletingId(null);
+                    }
                   }}
                 >
-                  <Trash2 className="w-3.5 h-3.5 mr-1" /> Remove
+                  <Trash2 className="w-3.5 h-3.5 mr-1" /> {deletingId === s.id ? "Removing…" : "Remove"}
                 </Button>
               </CardContent>
             </Card>
