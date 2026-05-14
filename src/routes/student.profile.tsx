@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
-import { useAuth, db } from "@/lib/store";
+import { useAuth, useRefreshData } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -17,29 +18,34 @@ export const Route = createFileRoute("/student/profile")({
 
 function Page() {
   const { user } = useAuth();
-  const [f, setF] = useState(() => ({
-    id: "",
+  const refresh = useRefreshData();
+  const [saving, setSaving] = useState(false);
+  const [f, setF] = useState({
     fullName: "",
     usn: "",
     department: "",
     year: "",
     phone: "",
-    password: "",
     avatar: "",
-  }));
+  });
+  const [newPassword, setNewPassword] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
       setF({
-        ...user,
-        avatar: user.avatar ?? "",
+        fullName: user.fullName || "",
+        usn: user.usn || "",
+        department: user.department || "",
+        year: user.year || "",
+        phone: user.phone || "",
+        avatar: user.avatar || "",
       });
     }
   }, [user]);
 
   if (!user) {
-    return <div className="text-muted-foreground">No data available</div>;
+    return <div className="text-muted-foreground">Loading profile…</div>;
   }
 
   const me = user;
@@ -52,12 +58,38 @@ function Page() {
     r.readAsDataURL(file);
   };
 
-  const save = () => {
-    db.set((d) => ({ ...d, students: d.students.map((s: any) => s.id === me.id ? { ...f } : s) }));
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        full_name: f.fullName,
+        usn: f.usn,
+        department: f.department,
+        year: f.year,
+        phone: f.phone,
+      })
+      .eq("id", me.id);
+    if (error) {
+      setSaving(false);
+      toast.error(error.message);
+      return;
+    }
+    if (newPassword.trim().length >= 6) {
+      const { error: pwErr } = await supabase.auth.updateUser({ password: newPassword });
+      if (pwErr) {
+        setSaving(false);
+        toast.error(pwErr.message);
+        return;
+      }
+      setNewPassword("");
+    }
+    await refresh();
+    setSaving(false);
     toast.success("Profile updated");
   };
 
-  const initials = (me.fullName || "U").split(" ").map((s: any) => s[0]).slice(0, 2).join("");
+  const initials = (f.fullName || "U").split(" ").map((s: string) => s[0]).slice(0, 2).join("");
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -82,8 +114,8 @@ function Page() {
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPick} />
           </div>
           <div>
-            <p className="font-semibold">{f.fullName || "No data available"}</p>
-            <p className="text-sm text-muted-foreground">{f.usn || "No data available"} · {f.department || "No data available"}</p>
+            <p className="font-semibold">{f.fullName || "—"}</p>
+            <p className="text-sm text-muted-foreground">{f.usn || "—"} · {f.department || "—"}</p>
           </div>
         </CardContent>
       </Card>
@@ -91,26 +123,16 @@ function Page() {
       <Card className="glass border-border/50 animate-fade-in-up">
         <CardHeader><CardTitle className="text-base">Personal details</CardTitle></CardHeader>
         <CardContent className="grid md:grid-cols-2 gap-4">
-          {[
-            ["Full Name", "fullName"],
-            ["USN", "usn"],
-            ["Department", "department"],
-            ["Class / Year", "year"],
-            ["Phone", "phone"],
-            ["Password", "password"],
-          ].map(([label, key]) => (
-            <div key={key} className="space-y-1.5">
-              <Label>{label}</Label>
-              <Input
-                className="glass"
-                type={key === "password" ? "password" : "text"}
-                value={(f as any)[key]}
-                onChange={(e) => setF({ ...f, [key]: e.target.value } as any)}
-              />
-            </div>
-          ))}
+          <div className="space-y-1.5"><Label>Full Name</Label><Input className="glass" value={f.fullName} onChange={(e) => setF({ ...f, fullName: e.target.value })} /></div>
+          <div className="space-y-1.5"><Label>USN</Label><Input className="glass" value={f.usn} onChange={(e) => setF({ ...f, usn: e.target.value })} /></div>
+          <div className="space-y-1.5"><Label>Department</Label><Input className="glass" value={f.department} onChange={(e) => setF({ ...f, department: e.target.value })} /></div>
+          <div className="space-y-1.5"><Label>Class / Year</Label><Input className="glass" value={f.year} onChange={(e) => setF({ ...f, year: e.target.value })} /></div>
+          <div className="space-y-1.5"><Label>Phone</Label><Input className="glass" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} /></div>
+          <div className="space-y-1.5"><Label>New Password (optional)</Label><Input type="password" className="glass" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Leave blank to keep current" /></div>
           <div className="md:col-span-2">
-            <Button className="gradient-primary text-primary-foreground border-0 shadow-glow hover-lift" onClick={save}>Save changes</Button>
+            <Button disabled={saving} className="gradient-primary text-primary-foreground border-0 shadow-glow hover-lift" onClick={save}>
+              {saving ? "Saving…" : "Save changes"}
+            </Button>
           </div>
         </CardContent>
       </Card>
