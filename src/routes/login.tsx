@@ -52,12 +52,12 @@ function LoginPage() {
   );
 }
 
-function PasswordField({ value, onChange, id }: { value: string; onChange: (v: string) => void; id: string }) {
+function PasswordField({ value, onChange, id, autoComplete = "current-password" }: { value: string; onChange: (v: string) => void; id: string; autoComplete?: string }) {
   const [show, setShow] = useState(false);
   return (
     <div className="relative">
-      <Input id={id} type={show ? "text" : "password"} value={value} onChange={(e) => onChange(e.target.value)} className="glass pr-10" required />
-      <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+      <Input id={id} name={id} type={show ? "text" : "password"} autoComplete={autoComplete} value={value} onChange={(e) => onChange(e.target.value)} className="glass pr-10" required />
+      <button type="button" tabIndex={-1} onClick={() => setShow((s) => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
         {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
       </button>
     </div>
