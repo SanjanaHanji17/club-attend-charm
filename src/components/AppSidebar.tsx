@@ -26,6 +26,7 @@ export function AppSidebar() {
     { to: "/admin/attendance", label: "Attendance", icon: ClipboardCheck },
     { to: "/admin/assignments", label: "Assignments", icon: FileText },
     { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+    { to: "/admin/announcements", label: "Announcements", icon: Megaphone },
     { to: "/admin/discussion", label: "Discussion", icon: MessagesSquare },
   ];
   const items = role === "admin" ? adminItems : studentItems;
