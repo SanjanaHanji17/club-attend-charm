@@ -110,6 +110,31 @@ function Page() {
 
   return (
     <div className="space-y-6 max-w-7xl">
+      {data.announcements && data.announcements.length > 0 && (
+        <Card className="glass-strong border-2 border-primary/50 animate-fade-in-up shadow-glow">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Megaphone className="w-5 h-5 text-primary" /> Latest Announcements
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[...data.announcements]
+              .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+              .slice(0, 5)
+              .map((a: any) => (
+                <div key={a.id} className="glass rounded-xl p-4 border-l-4 border-primary">
+                  <div className="flex items-start justify-between gap-2 flex-wrap">
+                    <p className="font-semibold">{a.title}</p>
+                    <span className="text-[11px] text-muted-foreground">{new Date(a.created_at).toLocaleString()}</span>
+                  </div>
+                  <p className="text-sm mt-2 whitespace-pre-wrap">{a.content}</p>
+                  <p className="text-[11px] text-muted-foreground mt-2">Posted by <span className="font-medium text-foreground">{a.author_name || "Admin"}</span></p>
+                </div>
+              ))}
+          </CardContent>
+        </Card>
+      )}
+
       <div className="glass-strong rounded-3xl p-6 md:p-8 relative overflow-hidden animate-fade-in-up">
         <div className="absolute -top-12 -right-12 w-60 h-60 rounded-full gradient-aurora opacity-30 blur-3xl" />
         <div className="relative flex items-start justify-between flex-wrap gap-4">
@@ -127,30 +152,6 @@ function Page() {
           </div>
         </div>
       </div>
-
-      {data.announcements && data.announcements.length > 0 && (
-        <Card className="glass border-primary/40 animate-fade-in-up">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Megaphone className="w-4 h-4 text-primary" /> Announcements
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {[...data.announcements]
-              .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-              .slice(0, 3)
-              .map((a: any) => (
-                <div key={a.id} className="glass rounded-xl p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-semibold text-sm">{a.title}</p>
-                    <span className="text-[10px] text-muted-foreground">{new Date(a.created_at).toLocaleString()}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{a.content}</p>
-                </div>
-              ))}
-          </CardContent>
-        </Card>
-      )}
 
       <Card className="glass border-border/50 animate-fade-in-up">
         <CardHeader>
