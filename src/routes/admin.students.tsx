@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
-import { useDB, db } from "@/lib/store";
+import { useDB, useRefreshData } from "@/lib/store";
+import { deleteStudentById } from "@/lib/admin.functions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,7 +18,10 @@ export const Route = createFileRoute("/admin/students")({
 
 function Page() {
   const data = useDB((d) => d);
+  const refresh = useRefreshData();
+  const deleteStudent = useServerFn(deleteStudentById);
   const [q, setQ] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const list = data.students.filter((s) =>
     [s.fullName, s.usn, s.department, s.year].join(" ").toLowerCase().includes(q.toLowerCase())
   );
