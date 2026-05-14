@@ -57,9 +57,27 @@ function streak(records: { sessionId: string; present: boolean }[], orderedIds: 
 function Page() {
   const { user } = useAuth();
   const data = useDB((d) => d);
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [qrValue, setQrValue] = useState<string>("");
+
+  useEffect(() => {
+    if (!user) return;
+    const ensureQr = async () => {
+      let code = user.qrCode;
+      if (!code) {
+        code = (Math.random().toString(36).slice(2, 10).toUpperCase() + (user.usn || "").slice(-4));
+        await supabase.from("profiles").update({ qr_code: code }).eq("id", user.id);
+      }
+      const payload = JSON.stringify({ usn: user.usn, id: user.id, code });
+      setQrValue(payload);
+      const url = await QRCode.toDataURL(payload, { width: 320, margin: 2, color: { dark: "#0b0b14", light: "#ffffff" } });
+      setQrDataUrl(url);
+    };
+    ensureQr();
+  }, [user]);
 
   if (!user) {
-    return <EmptyState message="No data available" />;
+    return <EmptyState message="Loading your dashboard..." />;
   }
 
   const student = user;
