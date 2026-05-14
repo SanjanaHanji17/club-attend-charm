@@ -69,7 +69,7 @@ function Page() {
         await supabase.from("profiles").update({ qr_code: code }).eq("id", user.id);
       }
       const payload = JSON.stringify({ usn: user.usn, id: user.id, code });
-      setQrValue(payload);
+      
       const url = await QRCode.toDataURL(payload, { width: 320, margin: 2, color: { dark: "#0b0b14", light: "#ffffff" } });
       setQrDataUrl(url);
     };
