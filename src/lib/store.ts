@@ -172,7 +172,18 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
             createdAt: c.created_at || ""
           };
         }),
-        announcements: announcements || []
+        announcements: (announcements || []).map((a: any) => {
+          const author = profiles?.find(p => p.id === a.author_id);
+          return { ...a, author_name: author?.full_name || "Admin", author_role: author?.role || "admin" };
+        }),
+        feedback: (feedback || []).map((f: any) => ({
+          id: f.id,
+          sessionId: f.session_id,
+          studentId: f.student_id,
+          rating: f.rating,
+          comment: f.comment,
+          createdAt: f.created_at,
+        })),
       };
     }
   });
@@ -185,7 +196,8 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
     assignments: [],
     submissions: [],
     comments: [],
-    announcements: []
+    announcements: [],
+    feedback: []
   };
 
   return (selector ? selector(fullData as LegacyDB) : fullData) as unknown as T;
