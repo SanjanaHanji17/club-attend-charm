@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, CalendarDays, ClipboardCheck, FileText,
-  MessagesSquare, Users, UserCircle, LogOut, Code2, BarChart3,
+  MessagesSquare, Users, UserCircle, LogOut, Code2, BarChart3, Megaphone,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
