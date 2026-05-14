@@ -145,7 +145,7 @@ function StudentLogin() {
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="usn">USN</Label>
-        <Input id="usn" value={usn} onChange={(e) => setUsn(e.target.value)} placeholder="Your USN" className="glass" required />
+        <Input id="usn" name="usn" autoComplete="username" value={usn} onChange={(e) => setUsn(e.target.value)} placeholder="Your USN" className="glass" required />
       </div>
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
