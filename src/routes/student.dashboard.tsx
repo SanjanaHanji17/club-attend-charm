@@ -1,11 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import QRCode from "qrcode";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
 import { useAuth, useDB } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, CheckCircle2, Flame, TrendingUp, Sparkles, Inbox } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CalendarDays, CheckCircle2, Flame, TrendingUp, Sparkles, Inbox, QrCode, Download, Megaphone } from "lucide-react";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
   PieChart, Pie, Cell, BarChart, Bar,
