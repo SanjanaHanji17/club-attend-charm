@@ -184,7 +184,7 @@ function AdminLogin() {
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="ausn">Admin USN</Label>
-        <Input id="ausn" value={usn} onChange={(e) => setUsn(e.target.value)} placeholder="Your USN" className="glass" required />
+        <Input id="ausn" name="ausn" autoComplete="username" value={usn} onChange={(e) => setUsn(e.target.value)} placeholder="Your USN" className="glass" required />
       </div>
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
