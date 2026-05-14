@@ -23,6 +23,7 @@ import { Route as AdminDiscussionRouteImport } from './routes/admin.discussion'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminAttendanceRouteImport } from './routes/admin.attendance'
 import { Route as AdminAssignmentsRouteImport } from './routes/admin.assignments'
+import { Route as AdminAnnouncementsRouteImport } from './routes/admin.announcements'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 
 const RegisterRoute = RegisterRouteImport.update({
@@ -95,6 +96,11 @@ const AdminAssignmentsRoute = AdminAssignmentsRouteImport.update({
   path: '/admin/assignments',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAnnouncementsRoute = AdminAnnouncementsRouteImport.update({
+  id: '/admin/announcements',
+  path: '/admin/announcements',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   id: '/admin/analytics',
   path: '/admin/analytics',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/assignments': typeof AdminAssignmentsRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/assignments': typeof AdminAssignmentsRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/assignments': typeof AdminAssignmentsRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/admin/analytics'
+    | '/admin/announcements'
     | '/admin/assignments'
     | '/admin/attendance'
     | '/admin/dashboard'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/admin/analytics'
+    | '/admin/announcements'
     | '/admin/assignments'
     | '/admin/attendance'
     | '/admin/dashboard'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/admin/analytics'
+    | '/admin/announcements'
     | '/admin/assignments'
     | '/admin/attendance'
     | '/admin/dashboard'
@@ -212,6 +224,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminAnnouncementsRoute: typeof AdminAnnouncementsRoute
   AdminAssignmentsRoute: typeof AdminAssignmentsRoute
   AdminAttendanceRoute: typeof AdminAttendanceRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
@@ -325,6 +338,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAssignmentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/announcements': {
+      id: '/admin/announcements'
+      path: '/admin/announcements'
+      fullPath: '/admin/announcements'
+      preLoaderRoute: typeof AdminAnnouncementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/analytics': {
       id: '/admin/analytics'
       path: '/admin/analytics'
@@ -340,6 +360,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminAnnouncementsRoute: AdminAnnouncementsRoute,
   AdminAssignmentsRoute: AdminAssignmentsRoute,
   AdminAttendanceRoute: AdminAttendanceRoute,
   AdminDashboardRoute: AdminDashboardRoute,

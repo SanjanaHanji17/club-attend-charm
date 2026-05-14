@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, CalendarDays, ClipboardCheck, FileText,
-  MessagesSquare, Users, UserCircle, LogOut, Code2, BarChart3,
+  MessagesSquare, Users, UserCircle, LogOut, Code2, BarChart3, Megaphone,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ export function AppSidebar() {
     { to: "/admin/attendance", label: "Attendance", icon: ClipboardCheck },
     { to: "/admin/assignments", label: "Assignments", icon: FileText },
     { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+    { to: "/admin/announcements", label: "Announcements", icon: Megaphone },
     { to: "/admin/discussion", label: "Discussion", icon: MessagesSquare },
   ];
   const items = role === "admin" ? adminItems : studentItems;
