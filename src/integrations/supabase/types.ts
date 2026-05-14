@@ -151,6 +151,33 @@ export type Database = {
           },
         ]
       }
+      feedback: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          rating: number | null
+          session_id: string
+          student_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          rating?: number | null
+          session_id: string
+          student_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          rating?: number | null
+          session_id?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
