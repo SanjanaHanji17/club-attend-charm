@@ -18,6 +18,7 @@ export const Route = createFileRoute("/admin/announcements")({
 function Page() {
   const { user } = useAuth();
   const data = useDB();
+  const refresh = useRefreshData();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,7 +38,7 @@ function Page() {
     toast.success("Announcement posted");
     setTitle("");
     setContent("");
-    window.location.reload();
+    await refresh();
   };
 
   const remove = async (id: string) => {
@@ -45,7 +46,7 @@ function Page() {
     const { error } = await supabase.from("announcements").delete().eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Deleted");
-    window.location.reload();
+    await refresh();
   };
 
   const list = [...(data.announcements || [])].sort(
