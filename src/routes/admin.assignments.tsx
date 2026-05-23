@@ -28,7 +28,7 @@ function Page() {
   const [f, setF] = useState({ title: "", description: "", dueDate: "" });
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
-  const [submissionsByAssignment, setSubmissionsByAssignment] = useState<Record<string, any[]>>({});
+  // submissions auto-loaded from useDB; no manual load needed
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["app_data"] });
 
