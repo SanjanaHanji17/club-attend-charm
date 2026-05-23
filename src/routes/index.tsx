@@ -108,7 +108,7 @@ function Index() {
               <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 text-primary">
                 <Code2 className="w-6 h-6" />
               </div>
-              <h3 className="font-bold text-xl mb-1">0%</h3>
+              <h3 className="font-bold text-xl mb-1">{avgAttendance}%</h3>
               <p className="text-sm text-muted-foreground">Average Attendance</p>
             </CardContent>
           </Card>
