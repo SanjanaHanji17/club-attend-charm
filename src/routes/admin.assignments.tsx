@@ -71,15 +71,7 @@ function Page() {
     refresh();
   };
 
-  const loadSubmissions = async (assignmentId: string) => {
-    const { data: subs, error } = await supabase
-      .from("submissions")
-      .select("*")
-      .eq("assignment_id", assignmentId)
-      .order("submitted_at", { ascending: false });
-    if (error) return toast.error(error.message);
-    setSubmissionsByAssignment((s) => ({ ...s, [assignmentId]: subs || [] }));
-  };
+  // submissions are pulled live from useDB().submissions
 
   return (
     <div className="space-y-6 max-w-5xl">
