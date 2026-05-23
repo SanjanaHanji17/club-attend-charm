@@ -17,11 +17,6 @@ function Index() {
   const totalMembers = data.students.length;
   const totalSessions = data.sessions.length;
 
-  // Average attendance: % of (student, session) pairs marked present
-  const presentCount = (data.attendance || []).filter((a: any) => a.present).length;
-  const denom = totalMembers * totalSessions;
-  const avgAttendance = denom > 0 ? Math.round((presentCount / denom) * 100) : 0;
-
   // Active/live sessions
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -108,7 +103,7 @@ function Index() {
               <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 text-primary">
                 <Code2 className="w-6 h-6" />
               </div>
-              <h3 className="font-bold text-xl mb-1">{avgAttendance}%</h3>
+              <h3 className="font-bold text-xl mb-1">0%</h3>
               <p className="text-sm text-muted-foreground">Average Attendance</p>
             </CardContent>
           </Card>

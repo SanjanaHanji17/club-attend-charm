@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, FileText, CheckCircle2, Paperclip, Download, User, Clock } from "lucide-react";
+import { Plus, Trash2, FileText, CheckCircle2, Clock, Paperclip, Download } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -28,7 +28,7 @@ function Page() {
   const [f, setF] = useState({ title: "", description: "", dueDate: "" });
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
-  // submissions auto-loaded from useDB; no manual load needed
+  const [submissionsByAssignment, setSubmissionsByAssignment] = useState<Record<string, any[]>>({});
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["app_data"] });
 
@@ -71,7 +71,15 @@ function Page() {
     refresh();
   };
 
-  // submissions are pulled live from useDB().submissions
+  const loadSubmissions = async (assignmentId: string) => {
+    const { data: subs, error } = await supabase
+      .from("submissions")
+      .select("*")
+      .eq("assignment_id", assignmentId)
+      .order("submitted_at", { ascending: false });
+    if (error) return toast.error(error.message);
+    setSubmissionsByAssignment((s) => ({ ...s, [assignmentId]: subs || [] }));
+  };
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -104,10 +112,8 @@ function Page() {
       )}
       <div className="grid md:grid-cols-2 gap-4">
         {data.assignments.map((a: any, i: number) => {
-          const subs = (data.submissions || [])
-            .filter((s: any) => s.assignmentId === a.id)
-            .sort((x: any, y: any) => +new Date(y.submittedAt) - +new Date(x.submittedAt));
-          const submitted = subs.length;
+          const subs = submissionsByAssignment[a.id];
+          const submitted = subs?.length ?? 0;
           const total = data.students.length;
           const pct = total ? Math.round((submitted / total) * 100) : 0;
           return (
@@ -131,39 +137,32 @@ function Page() {
                       </a>
                     )}
                     <div className="flex items-center justify-between mt-3 text-xs">
-                      <span className="text-muted-foreground">Due {a.dueDate ? new Date(a.dueDate).toLocaleDateString() : "—"}</span>
-                      <Badge variant="outline" className="glass h-6">{submitted}/{total} ({pct}%)</Badge>
+                      <span className="text-muted-foreground">Due {new Date(a.dueDate).toLocaleDateString()}</span>
+                      <Button size="sm" variant="outline" className="glass h-7" onClick={() => loadSubmissions(a.id)}>
+                        {subs ? `${submitted}/${total} (${pct}%)` : "Load submissions"}
+                      </Button>
                     </div>
-                    <div className="mt-3 grid gap-1.5">
-                      {submitted === 0 ? (
-                        <p className="text-xs text-muted-foreground">No submissions yet</p>
-                      ) : (
-                        subs.map((s: any, idx: number) => {
-                          const student = data.students.find((st: any) => st.id === s.studentId);
+                    {subs && (
+                      <div className="mt-3 grid gap-1.5">
+                        {subs.length === 0 && <p className="text-xs text-muted-foreground">No submissions yet</p>}
+                        {subs.map((s: any) => {
+                          const student = data.students.find((st: any) => st.id === s.student_id);
                           return (
-                            <div key={`${a.id}-${s.studentId}-${idx}`} className="flex items-center justify-between gap-2 text-xs glass rounded-lg px-2.5 py-2 flex-wrap">
-                              <span className="flex items-center gap-1 min-w-0 truncate">
-                                <User className="w-3 h-3 shrink-0" />
-                                <span className="truncate font-medium">{student?.fullName || "Unknown student"}</span>
-                                {student?.usn && <span className="text-muted-foreground">({student.usn})</span>}
-                              </span>
-                              <span className="text-muted-foreground shrink-0 flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {s.submittedAt ? new Date(s.submittedAt).toLocaleString() : "—"}
-                              </span>
+                            <div key={s.id} className="flex items-center justify-between gap-2 text-xs glass rounded-lg px-2.5 py-1.5">
+                              <span className="truncate">{student?.fullName || s.student_id}</span>
+                              <span className="text-muted-foreground shrink-0">{new Date(s.submitted_at).toLocaleString()}</span>
                               {s.file_url ? (
-                                <a href={s.file_url} target="_blank" rel="noopener noreferrer" download className="text-primary inline-flex items-center gap-1 story-link">
-                                  <Download className="w-3 h-3" /> Download
+                                <a href={s.file_url} target="_blank" rel="noopener noreferrer" className="text-primary inline-flex items-center gap-1">
+                                  <Download className="w-3 h-3" /> File
                                 </a>
                               ) : (
                                 <Badge className="bg-success/20 text-success border-success/30 h-5"><CheckCircle2 className="w-3 h-3 mr-1" />Note</Badge>
                               )}
                             </div>
                           );
-                        })
-                      )}
-                    </div>
-
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
