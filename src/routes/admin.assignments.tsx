@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
@@ -80,6 +80,13 @@ function Page() {
     if (error) return toast.error(error.message);
     setSubmissionsByAssignment((s) => ({ ...s, [assignmentId]: subs || [] }));
   };
+
+  useEffect(() => {
+    data.assignments.forEach((a: any) => {
+      if (!submissionsByAssignment[a.id]) loadSubmissions(a.id);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.assignments]);
 
   return (
     <div className="space-y-6 max-w-5xl">
