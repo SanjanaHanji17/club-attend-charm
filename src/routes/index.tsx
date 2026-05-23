@@ -102,15 +102,6 @@ function Index() {
               <p className="text-sm text-muted-foreground">Assignments</p>
             </CardContent>
           </Card>
-          <Card className="glass border-border/50 hover-lift bg-background/40 backdrop-blur-xl">
-            <CardContent className="p-6 text-left">
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 text-primary">
-                <Code2 className="w-6 h-6" />
-              </div>
-              <h3 className="font-bold text-xl mb-1">{avgAttendance}%</h3>
-              <p className="text-sm text-muted-foreground">Average Attendance</p>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Live Sessions */}
