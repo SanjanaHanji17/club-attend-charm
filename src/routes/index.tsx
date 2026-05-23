@@ -17,9 +17,6 @@ function Index() {
   const totalMembers = data.students.length;
   const totalSessions = data.sessions.length;
 
-  const presentCount = (data.attendance || []).filter((a: any) => a.present).length;
-  const possible = totalMembers * totalSessions;
-  const avgAttendance = possible > 0 ? Math.round((presentCount / possible) * 100) : 0;
 
   // Active/live sessions
   const today = new Date();
