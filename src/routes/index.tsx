@@ -17,6 +17,11 @@ function Index() {
   const totalMembers = data.students.length;
   const totalSessions = data.sessions.length;
 
+  // Average attendance: % of (student, session) pairs marked present
+  const presentCount = (data.attendance || []).filter((a: any) => a.present).length;
+  const denom = totalMembers * totalSessions;
+  const avgAttendance = denom > 0 ? Math.round((presentCount / denom) * 100) : 0;
+
   // Active/live sessions
   const today = new Date();
   today.setHours(0, 0, 0, 0);
