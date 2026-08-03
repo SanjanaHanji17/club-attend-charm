@@ -20,6 +20,7 @@ export type Database = {
           content: string
           created_at: string | null
           id: string
+          important: boolean
           title: string
         }
         Insert: {
@@ -27,6 +28,7 @@ export type Database = {
           content: string
           created_at?: string | null
           id?: string
+          important?: boolean
           title: string
         }
         Update: {
@@ -34,6 +36,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           id?: string
+          important?: boolean
           title?: string
         }
         Relationships: [

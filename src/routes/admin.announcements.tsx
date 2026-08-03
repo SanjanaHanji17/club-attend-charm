@@ -8,8 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Megaphone, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Megaphone, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/admin/announcements")({
   component: () => <AuthGate role="admin"><DashShell><Page /></DashShell></AuthGate>,
@@ -21,6 +25,7 @@ function Page() {
   const refresh = useRefreshData();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [important, setImportant] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -31,15 +36,18 @@ function Page() {
     const { error } = await supabase.from("announcements").insert({
       title: title.trim(),
       content: content.trim(),
+      important,
       author_id: user.id,
-    });
+    } as any);
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Announcement posted");
     setTitle("");
     setContent("");
+    setImportant(false);
     await refresh();
   };
+
 
   const remove = async (id: string) => {
     if (!confirm("Delete this announcement?")) return;
@@ -68,6 +76,12 @@ function Page() {
           <form onSubmit={submit} className="space-y-3">
             <Input className="glass" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
             <Textarea className="glass min-h-28" placeholder="Write the announcement..." value={content} onChange={(e) => setContent(e.target.value)} />
+            <div className="flex items-center gap-3">
+              <Switch id="important" checked={important} onCheckedChange={setImportant} />
+              <Label htmlFor="important" className="flex items-center gap-1.5 cursor-pointer">
+                <AlertTriangle className="w-4 h-4 text-destructive" /> Mark as important
+              </Label>
+            </div>
             <Button disabled={loading} type="submit" className="gradient-primary text-primary-foreground border-0 shadow-glow">
               Post announcement
             </Button>
@@ -82,10 +96,13 @@ function Page() {
             <p className="text-sm text-muted-foreground text-center py-6">No announcements yet</p>
           ) : (
             list.map((a: any) => (
-              <div key={a.id} className="glass rounded-xl p-4">
+              <div key={a.id} className={`glass rounded-xl p-4 border-l-4 ${a.important ? "border-destructive" : "border-primary/40"}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-semibold">{a.title}</p>
+                    <p className="font-semibold flex items-center gap-2">
+                      {a.title}
+                      {a.important && <Badge className="bg-destructive/20 text-destructive border-destructive/30">Important</Badge>}
+                    </p>
                     <p className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleString()}</p>
                     <p className="text-sm mt-2 whitespace-pre-wrap">{a.content}</p>
                   </div>
@@ -99,5 +116,6 @@ function Page() {
         </CardContent>
       </Card>
     </div>
+
   );
 }

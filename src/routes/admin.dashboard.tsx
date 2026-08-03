@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashShell } from "@/components/DashShell";
 import { AuthGate } from "@/components/AuthGate";
+import { AnnouncementsPanel } from "@/components/AnnouncementsPanel";
+import { UpcomingSessions } from "@/components/UpcomingSessions";
+
 import { useAuth, useDB } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, CalendarDays, TrendingUp, FileText, Sparkles, Inbox } from "lucide-react";
@@ -84,7 +87,15 @@ function Page() {
         <p className="text-muted-foreground mt-2 max-w-xl">Live pulse of your coding club.</p>
       </div>
 
+      <AnnouncementsPanel announcements={(data as any).announcements || []} />
+
+      <UpcomingSessions
+        sessions={data.sessions as any}
+        hostNameById={Object.fromEntries([...data.students, ...data.admins].map((p: any) => [p.id, p.fullName]))}
+      />
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
         <StatCard icon={Users} label="Total Students" value={totalStudents} delay={0} />
         <StatCard icon={CalendarDays} label="Total Sessions" value={totalSessions} delay={60} />
         <StatCard icon={TrendingUp} label="Avg Attendance" value={`${avgAttendance}%`} delay={120} />
