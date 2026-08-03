@@ -75,10 +75,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "CodeClub — Attendance OS for the Coding Club" },
       { name: "description", content: "Premium attendance, sessions, assignments and community for your campus coding club." },
       { name: "author", content: "CodeClub" },
-      { property: "og:title", content: "CodeClub — Attendance OS" },
+      { property: "og:title", content: "CodeClub — Attendance OS for the Coding Club" },
       { property: "og:description", content: "Premium attendance, sessions, assignments and community for your campus coding club." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "CodeClub — Attendance OS for the Coding Club" },
+      { name: "twitter:description", content: "Premium attendance, sessions, assignments and community for your campus coding club." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/43f855ff-d844-465e-a8fe-3436e7ff504e/id-preview-d92de6e7--fbe6acd5-0251-4e41-8213-0a9faff9a437.lovable.app-1785757729440.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/43f855ff-d844-465e-a8fe-3436e7ff504e/id-preview-d92de6e7--fbe6acd5-0251-4e41-8213-0a9faff9a437.lovable.app-1785757729440.png" },
     ],
     links: [
       {
