@@ -53,6 +53,23 @@ function Field({ label, ...p }: any) {
   );
 }
 
+async function usnTaken(usn: string, role: string) {
+  const { data } = await supabase
+    .from("profiles")
+    .select("id")
+    .ilike("usn", usn.trim())
+    .eq("role", role as any)
+    .maybeSingle();
+  return !!data;
+}
+
+function validate(f: { fullName: string; usn: string; department: string; phone: string; password: string }) {
+  if (Object.values(f).some((v) => !v.trim())) return "Please fill all fields";
+  if (!/^\d{10}$/.test(f.phone.trim())) return "Phone number must be exactly 10 digits";
+  if (f.password.length < 6) return "Password must be at least 6 characters";
+  return null;
+}
+
 function StudentSignup() {
   const navigate = useNavigate();
   const [f, setF] = useState({ fullName: "", usn: "", department: "", phone: "", password: "" });
@@ -60,19 +77,25 @@ function StudentSignup() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (Object.values(f).some((v) => !v)) return toast.error("Please fill all fields");
-    if (f.password.length < 6) return toast.error("Password must be at least 6 characters");
+    const invalid = validate(f);
+    if (invalid) return toast.error(invalid);
     setLoading(true);
 
-    const { data, error } = await registerWithUsn(f.usn, f.password, "student", {
+    if (await usnTaken(f.usn, "student")) {
+      toast.error("This USN is already registered. Please sign in instead.");
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await registerWithUsn(f.usn.trim(), f.password, "student", {
       fullName: f.fullName,
-      usn: f.usn,
+      usn: f.usn.trim(),
       department: f.department,
       phone: f.phone
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(error.message.includes("already registered") ? "This USN is already registered." : error.message);
       setLoading(false);
       return;
     }
@@ -82,23 +105,25 @@ function StudentSignup() {
       const { error: profileError } = await supabase.from("profiles").insert({
         id: data.user.id,
         role: "student",
-        full_name: f.fullName,
-        usn: f.usn,
-        department: f.department,
-        phone: f.phone,
+        full_name: f.fullName.trim(),
+        usn: f.usn.trim(),
+        department: f.department.trim(),
+        phone: f.phone.trim(),
         qr_code: qr_code
       });
 
       if (profileError) {
-        toast.error(profileError.message);
+        toast.error(profileError.message.includes("duplicate") ? "This USN is already registered." : profileError.message);
         setLoading(false);
         return;
       }
 
-      toast.success("Account created!");
+      toast.success("Registration successful! Welcome to CodeClub 🎉");
       navigate({ to: "/student/dashboard" });
     }
+    setLoading(false);
   };
+
 
   return (
     <form onSubmit={submit} className="grid grid-cols-2 gap-3">
@@ -121,19 +146,25 @@ function AdminSignup() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (Object.values(f).some((v) => !v)) return toast.error("Please fill all fields");
-    if (f.password.length < 6) return toast.error("Password must be at least 6 characters");
+    const invalid = validate(f);
+    if (invalid) return toast.error(invalid);
     setLoading(true);
 
-    const { data, error } = await registerWithUsn(f.usn, f.password, "admin", {
+    if (await usnTaken(f.usn, "admin")) {
+      toast.error("This USN is already registered as an admin. Please sign in instead.");
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await registerWithUsn(f.usn.trim(), f.password, "admin", {
       fullName: f.fullName,
-      usn: f.usn,
+      usn: f.usn.trim(),
       department: f.department,
       phone: f.phone
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(error.message.includes("already registered") ? "This USN is already registered." : error.message);
       setLoading(false);
       return;
     }
@@ -142,22 +173,24 @@ function AdminSignup() {
       const { error: profileError } = await supabase.from("profiles").insert({
         id: data.user.id,
         role: "admin",
-        full_name: f.fullName,
-        usn: f.usn,
-        department: f.department,
-        phone: f.phone
+        full_name: f.fullName.trim(),
+        usn: f.usn.trim(),
+        department: f.department.trim(),
+        phone: f.phone.trim()
       });
 
       if (profileError) {
-        toast.error(profileError.message);
+        toast.error(profileError.message.includes("duplicate") ? "This USN is already registered." : profileError.message);
         setLoading(false);
         return;
       }
 
-      toast.success("Admin account created!");
+      toast.success("Registration successful! Welcome, Admin 🎉");
       navigate({ to: "/admin/dashboard" });
     }
+    setLoading(false);
   };
+
 
   return (
     <form onSubmit={submit} className="grid grid-cols-2 gap-3">

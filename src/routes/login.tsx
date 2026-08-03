@@ -131,15 +131,17 @@ function StudentLogin() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await loginWithUsn(usn, password, "student");
+    const { error } = await loginWithUsn(usn.trim(), password, "student");
     if (error) {
-      toast.error(error.message);
+      toast.error(error.message === "Invalid login credentials" ? "Incorrect USN or password" : error.message);
       setLoading(false);
       return;
     }
     toast.success("Welcome back!");
+    setLoading(false);
     navigate({ to: "/student/dashboard" });
   };
+
 
   return (
     <form onSubmit={submit} className="space-y-4">
@@ -170,15 +172,17 @@ function AdminLogin() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await loginWithUsn(usn, password, "admin");
+    const { error } = await loginWithUsn(usn.trim(), password, "admin");
     if (error) {
-      toast.error(error.message);
+      toast.error(error.message === "Invalid login credentials" ? "Incorrect USN or password" : error.message);
       setLoading(false);
       return;
     }
     toast.success("Welcome, Admin!");
+    setLoading(false);
     navigate({ to: "/admin/dashboard" });
   };
+
 
   return (
     <form onSubmit={submit} className="space-y-4">

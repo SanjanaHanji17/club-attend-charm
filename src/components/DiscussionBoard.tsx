@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Send, MessagesSquare, Trash2 } from "lucide-react";
+import { Send, MessagesSquare, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export function DiscussionBoard() {
@@ -16,6 +16,9 @@ export function DiscussionBoard() {
   const qc = useQueryClient();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+
   if (!user || !role) return null;
 
   const post = async () => {
@@ -39,6 +42,17 @@ export function DiscussionBoard() {
     toast.success("Deleted");
     qc.invalidateQueries({ queryKey: ["app_data"] });
   };
+
+  const saveEdit = async (id: string) => {
+    if (!editText.trim()) return toast.error("Post cannot be empty");
+    const { error } = await supabase.from("comments").update({ text: editText.trim() }).eq("id", id);
+    if (error) return toast.error(error.message);
+    setEditId(null);
+    setEditText("");
+    toast.success("Post updated");
+    qc.invalidateQueries({ queryKey: ["app_data"] });
+  };
+
 
   const sorted = [...(data.comments || [])].sort(
     (a: any, b: any) => +new Date(b.createdAt) - +new Date(a.createdAt)
@@ -71,7 +85,10 @@ export function DiscussionBoard() {
       <div className="space-y-3">
         {sorted.map((c: any, i: number) => {
           const initials = (c.authorName || "?").split(" ").map((s: string) => s[0]).slice(0, 2).join("");
-          const canDelete = c.authorId === user.id;
+          const isOwner = c.authorId === user.id;
+          const canDelete = isOwner || role === "admin";
+          const canEdit = isOwner || role === "admin";
+          const editing = editId === c.id;
           return (
             <Card key={c.id} className="glass border-border/50 hover-lift animate-fade-in-up" style={{ animationDelay: `${i * 50}ms` }}>
               <CardContent className="p-5 flex gap-3">
@@ -87,14 +104,32 @@ export function DiscussionBoard() {
                       <Badge variant="outline" className="glass">Student</Badge>
                     )}
                     <span className="text-xs text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</span>
-                    {canDelete && (
-                      <Button size="icon" variant="ghost" className="h-6 w-6 ml-auto text-destructive" onClick={() => remove(c.id)}>
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    )}
+                    <div className="ml-auto flex items-center gap-1">
+                      {canEdit && !editing && (
+                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { setEditId(c.id); setEditText(c.text); }}>
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => remove(c.id)}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-sm mt-1.5 whitespace-pre-wrap break-words">{c.text}</p>
+                  {editing ? (
+                    <div className="mt-2 space-y-2">
+                      <Textarea value={editText} onChange={(e) => setEditText(e.target.value)} className="glass min-h-[80px]" maxLength={1000} />
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => saveEdit(c.id)} className="gradient-primary text-primary-foreground border-0">Save</Button>
+                        <Button size="sm" variant="ghost" onClick={() => { setEditId(null); setEditText(""); }}>Cancel</Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm mt-1.5 whitespace-pre-wrap break-words">{c.text}</p>
+                  )}
                 </div>
+
               </CardContent>
             </Card>
           );

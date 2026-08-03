@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 export type Role = "student" | "admin";
@@ -209,72 +209,100 @@ export function useRefreshData() {
 }
 
 
-export function useAuth() {
-  const [session, setSession] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+type AuthSnapshot = {
+  session: { role: Role | null; userId: string } | null;
+  user: any | null;
+  role: Role | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  profileMissing: boolean;
+};
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        supabase.from("profiles").select("*").eq("id", session.user.id).single().then(({ data }) => {
-          if (data) {
-            setUserProfile({
-              id: data.id,
-              role: data.role,
-              fullName: data.full_name,
-              usn: data.usn,
-              department: data.department,
-              year: data.year,
-              phone: data.phone,
-              qrCode: data.qr_code
-            });
-          }
-          setLoading(false);
-        });
-      } else {
-        setLoading(false);
-      }
-    });
+const EMPTY_AUTH: AuthSnapshot = {
+  session: null, user: null, role: null, isAuthenticated: false, loading: true, profileMissing: false,
+};
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session?.user) {
-        supabase.from("profiles").select("*").eq("id", session.user.id).single().then(({ data }) => {
-          if (data) {
-            setUserProfile({
-              id: data.id,
-              role: data.role,
-              fullName: data.full_name,
-              usn: data.usn,
-              department: data.department,
-              year: data.year,
-              phone: data.phone,
-              qrCode: data.qr_code
-            });
-          }
-        });
-      } else {
-        setUserProfile(null);
-      }
-    });
+let authSnapshot: AuthSnapshot = EMPTY_AUTH;
+const authListeners = new Set<() => void>();
+let authInitialized = false;
 
-    return () => subscription.unsubscribe();
-  }, []);
+function setAuthSnapshot(next: AuthSnapshot) {
+  authSnapshot = next;
+  authListeners.forEach((l) => l());
+}
 
+function mapProfile(data: any) {
   return {
-    session: session ? { role: userProfile?.role, userId: session.user.id } : null,
-    user: userProfile,
-    role: userProfile?.role || null,
-    isAuthenticated: !!session && !!userProfile,
-    loading
+    id: data.id,
+    role: data.role as Role,
+    fullName: data.full_name,
+    usn: data.usn,
+    department: data.department,
+    year: data.year,
+    phone: data.phone,
+    qrCode: data.qr_code,
   };
 }
 
+async function applySession(rawSession: any) {
+  if (!rawSession?.user) {
+    setAuthSnapshot({ ...EMPTY_AUTH, loading: false });
+    return;
+  }
+  const userId = rawSession.user.id;
+  const { data } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+  if (data) {
+    const profile = mapProfile(data);
+    setAuthSnapshot({
+      session: { role: profile.role, userId },
+      user: profile,
+      role: profile.role,
+      isAuthenticated: true,
+      loading: false,
+      profileMissing: false,
+    });
+  } else {
+    // Signed in but no profile row — never leave the UI stuck loading.
+    setAuthSnapshot({
+      session: { role: null, userId },
+      user: null,
+      role: null,
+      isAuthenticated: false,
+      loading: false,
+      profileMissing: true,
+    });
+  }
+}
+
+function initAuth() {
+  if (authInitialized || typeof window === "undefined") return;
+  authInitialized = true;
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    void applySession(session);
+  });
+
+  supabase.auth.getSession()
+    .then(({ data }) => applySession(data.session))
+    .catch(() => setAuthSnapshot({ ...EMPTY_AUTH, loading: false }));
+}
+
+export function useAuth(): AuthSnapshot {
+  useEffect(() => { initAuth(); }, []);
+  return useSyncExternalStore(
+    (cb: () => void) => { authListeners.add(cb); return () => { authListeners.delete(cb); }; },
+    () => authSnapshot,
+    () => EMPTY_AUTH,
+  );
+}
+
 export const auth = {
-  signOut: async () => await supabase.auth.signOut(),
+  signOut: async () => {
+    await supabase.auth.signOut();
+    setAuthSnapshot({ ...EMPTY_AUTH, loading: false });
+  },
 };
+
 
 // Deprecated local db operations to prevent crashes until we rewrite
 export const db = {
