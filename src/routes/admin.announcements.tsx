@@ -137,7 +137,7 @@ function Page() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+      <Dialog open={!!editing} onOpenChange={(o: boolean) => !o && setEditing(null)}>
         <DialogContent className="glass-strong border-border/60">
           <DialogHeader><DialogTitle>Edit announcement</DialogTitle></DialogHeader>
           <div className="space-y-3">
