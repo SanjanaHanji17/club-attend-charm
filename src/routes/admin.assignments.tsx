@@ -137,7 +137,12 @@ function Page() {
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">{a.description}</p>
+                    {!(a.dueDate && new Date(a.dueDate) < new Date()) && (
+                      <p className="text-sm text-muted-foreground mt-1">{a.description}</p>
+                    )}
+                    {a.dueDate && new Date(a.dueDate) < new Date() && (
+                      <p className="text-xs text-muted-foreground mt-1">Closed · {submitted}/{total} submitted ({pct}%)</p>
+                    )}
                     {a.file_url && (
                       <a href={a.file_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary mt-2 story-link">
                         <Paperclip className="w-3 h-3" /> Attached file
