@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Megaphone, Trash2, AlertTriangle } from "lucide-react";
+import { Megaphone, Trash2, AlertTriangle, Pencil } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 
@@ -48,6 +49,20 @@ function Page() {
     await refresh();
   };
 
+  const [editing, setEditing] = useState<any | null>(null);
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    if (!editing.title.trim() || !editing.content.trim()) return toast.error("Title and content required");
+    const { error } = await supabase
+      .from("announcements")
+      .update({ title: editing.title.trim(), content: editing.content.trim(), important: editing.important } as any)
+      .eq("id", editing.id);
+    if (error) return toast.error(error.message);
+    toast.success("Announcement updated");
+    setEditing(null);
+    await refresh();
+  };
 
   const remove = async (id: string) => {
     if (!confirm("Delete this announcement?")) return;
@@ -57,9 +72,10 @@ function Page() {
     await refresh();
   };
 
-  const list = [...(data.announcements || [])].sort(
-    (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
+  const list = [...(data.announcements || [])].sort((a: any, b: any) => {
+    if (!!a.important !== !!b.important) return a.important ? -1 : 1;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -106,15 +122,37 @@ function Page() {
                     <p className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleString()}</p>
                     <p className="text-sm mt-2 whitespace-pre-wrap">{a.content}</p>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => remove(a.id)}>
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
+                  <div className="flex items-center shrink-0">
+                    <Button variant="ghost" size="icon" onClick={() => setEditing({ id: a.id, title: a.title, content: a.content, important: !!a.important })}>
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => remove(a.id)}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!editing} onOpenChange={(o: boolean) => !o && setEditing(null)}>
+        <DialogContent className="glass-strong border-border/60">
+          <DialogHeader><DialogTitle>Edit announcement</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <Input className="glass" value={editing?.title || ""} onChange={(e) => setEditing({ ...editing, title: e.target.value })} />
+            <Textarea className="glass min-h-28" value={editing?.content || ""} onChange={(e) => setEditing({ ...editing, content: e.target.value })} />
+            <div className="flex items-center gap-3">
+              <Switch id="edit-important" checked={!!editing?.important} onCheckedChange={(v) => setEditing({ ...editing, important: v })} />
+              <Label htmlFor="edit-important" className="flex items-center gap-1.5 cursor-pointer">
+                <AlertTriangle className="w-4 h-4 text-destructive" /> Mark as important
+              </Label>
+            </div>
+            <Button className="w-full gradient-primary text-primary-foreground border-0" onClick={saveEdit}>Save changes</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
 
   );

@@ -17,9 +17,10 @@ export type AnnouncementItem = {
 export function AnnouncementsPanel({ announcements }: { announcements: AnnouncementItem[] }) {
   const [open, setOpen] = useState<AnnouncementItem | null>(null);
 
-  const list = [...(announcements || [])].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
+  const list = [...(announcements || [])].sort((a, b) => {
+    if (!!a.important !== !!b.important) return a.important ? -1 : 1;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 
   if (list.length === 0) return null;
 

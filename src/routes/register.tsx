@@ -100,6 +100,11 @@ function StudentSignup() {
       return;
     }
 
+    if (data.user && !data.session) {
+      // Ensure a session exists so the profile insert passes row-level security.
+      await supabase.auth.signInWithPassword({ email: `${f.usn.trim().toLowerCase()}@student.codeclub.app`, password: f.password });
+    }
+
     if (data.user) {
       const qr_code = Math.random().toString(36).slice(2, 10).toUpperCase() + f.usn.slice(-4);
       const { error: profileError } = await supabase.from("profiles").insert({
@@ -167,6 +172,10 @@ function AdminSignup() {
       toast.error(error.message.includes("already registered") ? "This USN is already registered." : error.message);
       setLoading(false);
       return;
+    }
+
+    if (data.user && !data.session) {
+      await supabase.auth.signInWithPassword({ email: `${f.usn.trim().toLowerCase()}@admin.codeclub.app`, password: f.password });
     }
 
     if (data.user) {

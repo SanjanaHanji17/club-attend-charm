@@ -244,13 +244,45 @@ function mapProfile(data: any) {
   };
 }
 
+async function ensureProfile(rawUser: any) {
+  // Self-heal: an auth account with no profile row (e.g. the profile insert during
+  // registration failed because the session wasn't established yet). Recreate it
+  // from the signup metadata instead of forcing the user to register again.
+  const meta = rawUser?.user_metadata || {};
+  const email: string = rawUser?.email || "";
+  const role: Role = email.includes("@admin.") ? "admin" : "student";
+  const usn: string = (meta.usn || email.split("@")[0] || "").toUpperCase();
+  if (!usn) return null;
+  const payload: any = {
+    id: rawUser.id,
+    role,
+    full_name: meta.fullName || meta.full_name || usn,
+    usn,
+    department: meta.department || null,
+    phone: meta.phone || null,
+    qr_code: role === "student"
+      ? Math.random().toString(36).slice(2, 10).toUpperCase() + usn.slice(-4)
+      : null,
+  };
+  const { data, error } = await supabase.from("profiles").insert(payload).select("*").maybeSingle();
+  if (error) {
+    // Possibly created concurrently — re-read before giving up.
+    const { data: existing } = await supabase.from("profiles").select("*").eq("id", rawUser.id).maybeSingle();
+    return existing ?? null;
+  }
+  return data;
+}
+
 async function applySession(rawSession: any) {
   if (!rawSession?.user) {
     setAuthSnapshot({ ...EMPTY_AUTH, loading: false });
     return;
   }
   const userId = rawSession.user.id;
-  const { data } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+  let { data } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+  if (!data) {
+    data = await ensureProfile(rawSession.user);
+  }
   if (data) {
     const profile = mapProfile(data);
     setAuthSnapshot({
