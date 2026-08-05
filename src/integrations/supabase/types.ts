@@ -305,7 +305,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      assignment_submission_stats: {
+        Args: never
+        Returns: {
+          assignment_id: string
+          submitted_count: number
+          total_students: number
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "student"
