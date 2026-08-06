@@ -102,10 +102,10 @@ export function DiscussionBoard() {
           const initials = (c.authorName || "?").split(" ").map((s: string) => s[0]).slice(0, 2).join("");
           const isOwner = c.authorId === user.id;
           const canDelete = isOwner || role === "admin";
-          const canEdit = isOwner || role === "admin";
+          const canEdit = isOwner;
           const editing = editId === c.id;
           return (
-            <Card key={c.id} className="glass border-border/50 hover-lift animate-fade-in-up" style={{ animationDelay: `${i * 50}ms` }}>
+            <Card key={c.id} className={`glass hover-lift animate-fade-in-up ${c.important ? "border-2 border-destructive/50" : "border-border/50"}`} style={{ animationDelay: `${i * 50}ms` }}>
               <CardContent className="p-5 flex gap-3">
                 <Avatar className="w-10 h-10 ring-2 ring-primary/30 shrink-0">
                   <AvatarFallback className="gradient-primary text-primary-foreground text-xs">{initials}</AvatarFallback>
