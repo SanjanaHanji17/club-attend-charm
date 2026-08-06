@@ -118,6 +118,9 @@ export function DiscussionBoard() {
                     ) : (
                       <Badge variant="outline" className="glass">Student</Badge>
                     )}
+                    {c.important && (
+                      <Badge className="bg-destructive/20 text-destructive border-destructive/30"><AlertTriangle className="w-3 h-3 mr-1" /> Important</Badge>
+                    )}
                     <span className="text-xs text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</span>
                     <div className="ml-auto flex items-center gap-1">
                       {canEdit && !editing && (
