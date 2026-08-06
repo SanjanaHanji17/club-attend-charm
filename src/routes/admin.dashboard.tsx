@@ -90,12 +90,11 @@ function Page() {
         hostNameById={Object.fromEntries([...data.students, ...data.admins].map((p: any) => [p.id, p.fullName]))}
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
         <StatCard icon={Users} label="Total Students" value={totalStudents} delay={0} />
         <StatCard icon={CalendarDays} label="Total Sessions" value={totalSessions} delay={60} />
         <StatCard icon={TrendingUp} label="Avg Attendance" value={`${avgAttendance}%`} delay={120} />
-        <StatCard icon={FileText} label="Pending Submissions" value={pendingSubmissions} delay={180} />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4">
