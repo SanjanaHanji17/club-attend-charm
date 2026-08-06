@@ -59,10 +59,6 @@ function Page() {
   const possibleCount = totalStudents * totalSessions;
   const avgAttendance = possibleCount > 0 ? Math.round((presentCount / possibleCount) * 100) : 0;
 
-  const pendingSubmissions =
-    totalAssignments > 0 && totalStudents > 0
-      ? Math.max(0, totalAssignments * totalStudents - data.submissions.length)
-      : 0;
 
   const attendancePerSession = data.sessions.map((s) => {
     const present = data.attendance.filter((a) => a.sessionId === s.id && a.present).length;
