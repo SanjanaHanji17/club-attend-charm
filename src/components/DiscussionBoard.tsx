@@ -7,7 +7,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Send, MessagesSquare, Trash2, Pencil } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Send, MessagesSquare, Trash2, Pencil, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export function DiscussionBoard() {
@@ -15,6 +17,7 @@ export function DiscussionBoard() {
   const data = useDB((d) => d);
   const qc = useQueryClient();
   const [text, setText] = useState("");
+  const [important, setImportant] = useState(false);
   const [busy, setBusy] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
@@ -27,11 +30,14 @@ export function DiscussionBoard() {
     const { error } = await supabase.from("comments").insert({
       author_id: user.id,
       text: text.trim(),
-    });
+      ...(role === "admin" ? { important } : {}),
+    } as any);
     setBusy(false);
     if (error) return toast.error(error.message);
     setText("");
-    toast.success("Posted!");
+    if (important) toast.success("Important post published — everyone will see it on their dashboard");
+    else toast.success("Posted!");
+    setImportant(false);
     qc.invalidateQueries({ queryKey: ["app_data"] });
   };
 
@@ -54,9 +60,10 @@ export function DiscussionBoard() {
   };
 
 
-  const sorted = [...(data.comments || [])].sort(
-    (a: any, b: any) => +new Date(b.createdAt) - +new Date(a.createdAt)
-  );
+  const sorted = [...(data.comments || [])].sort((a: any, b: any) => {
+    if (!!a.important !== !!b.important) return a.important ? -1 : 1;
+    return +new Date(b.createdAt) - +new Date(a.createdAt);
+  });
 
   return (
     <div className="space-y-6 max-w-3xl">
