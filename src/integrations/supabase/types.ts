@@ -120,6 +120,7 @@ export type Database = {
           author_id: string
           created_at: string | null
           id: string
+          important: boolean
           parent_id: string | null
           text: string
         }
@@ -127,6 +128,7 @@ export type Database = {
           author_id: string
           created_at?: string | null
           id?: string
+          important?: boolean
           parent_id?: string | null
           text: string
         }
@@ -134,6 +136,7 @@ export type Database = {
           author_id?: string
           created_at?: string | null
           id?: string
+          important?: boolean
           parent_id?: string | null
           text?: string
         }
