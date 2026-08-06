@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, CalendarDays, User2, Mic } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -103,7 +104,13 @@ function Page() {
         {data.sessions.length === 0 && (
           <p className="text-sm text-muted-foreground md:col-span-2 text-center py-10">No sessions added yet</p>
         )}
-        {data.sessions.map((s: any, i: number) => (
+        {data.sessions.map((s: any, i: number) => {
+          const dt = new Date(`${s.date}T${s.time && /^\d{2}:\d{2}/.test(s.time) ? s.time : "23:59"}`);
+          const ended = !isNaN(dt.getTime()) && dt.getTime() < Date.now();
+          const totalStudents = data.students.length;
+          const present = data.attendance.filter((a: any) => a.sessionId === s.id && a.present).length;
+          const pct = totalStudents ? Math.round((present / totalStudents) * 100) : 0;
+          return (
           <Card key={s.id} className="glass border-border/50 hover-lift animate-fade-in-up" style={{ animationDelay: `${i * 50}ms` }}>
             <CardContent className="p-5">
               <div className="flex items-start justify-between gap-3">
@@ -111,7 +118,10 @@ function Page() {
                   <h3 className="font-semibold text-lg">{s.title}</h3>
                   <p className="text-sm text-muted-foreground mt-1">{s.description}</p>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-1 items-start">
+                  <Badge className={ended ? "bg-muted/40 text-muted-foreground border-muted-foreground/20 mr-1" : "bg-success/20 text-success border-success/30 mr-1"}>
+                    {ended ? "Session Ended" : "Upcoming"}
+                  </Badge>
                   <Button size="icon" variant="ghost" onClick={() => { setForm(s); setOpen(true); }}><Pencil className="w-4 h-4" /></Button>
                   <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={() => deleteSession(s.id, s.title)}>
@@ -123,9 +133,20 @@ function Page() {
                 <span className="flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> {new Date(s.date).toLocaleDateString()} {s.time}</span>
                 <span className="flex items-center gap-1.5"><Mic className="w-3.5 h-3.5" /> {s.resourcePerson}</span>
               </div>
+              {ended && (
+                <div className="mt-4 glass rounded-xl p-3 text-xs space-y-1">
+                  <p className="font-semibold flex items-center gap-1.5"><User2 className="w-3.5 h-3.5 text-primary" /> Attendance Summary</p>
+                  <p className="text-muted-foreground">Present: <span className="text-foreground font-medium">{present} / {totalStudents} students</span></p>
+                  <p className="text-muted-foreground">Attendance: <span className="text-foreground font-medium">{pct}%</span></p>
+                  <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1">
+                    <div className="h-full gradient-primary" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
