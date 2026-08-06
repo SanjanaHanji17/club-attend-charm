@@ -123,7 +123,7 @@ function StudentSignup() {
         return;
       }
 
-      toast.success("Registration successful! Welcome to CodeClub 🎉");
+      toast.success("Registration Successful! Please Sign In.");
       navigate({ to: "/student/dashboard" });
     }
     setLoading(false);
@@ -194,7 +194,7 @@ function AdminSignup() {
         return;
       }
 
-      toast.success("Registration successful! Welcome, Admin 🎉");
+      toast.success("Registration Successful! Please Sign In.");
       navigate({ to: "/admin/dashboard" });
     }
     setLoading(false);
