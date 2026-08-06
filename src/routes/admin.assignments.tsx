@@ -123,6 +123,7 @@ function Page() {
           const submitted = subs?.length ?? 0;
           const total = data.students.length;
           const pct = total ? Math.round((submitted / total) * 100) : 0;
+          const closed = !!(a.dueDate && new Date(a.dueDate) < new Date());
           return (
             <Card key={a.id} className="glass border-border/50 hover-lift animate-fade-in-up" style={{ animationDelay: `${i * 50}ms` }}>
               <CardContent className="p-5">
@@ -137,38 +138,57 @@ function Page() {
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                    {!(a.dueDate && new Date(a.dueDate) < new Date()) && (
-                      <p className="text-sm text-muted-foreground mt-1">{a.description}</p>
+
+                    {closed ? (
+                      <div className="mt-1 space-y-1 text-xs">
+                        <p className="flex items-center gap-1.5 text-muted-foreground">
+                          <Clock className="w-3.5 h-3.5" /> Status: <span className="text-foreground font-medium">Closed</span>
+                        </p>
+                        <p className="text-muted-foreground">
+                          Submitted: <span className="text-foreground font-medium">{submitted} / {total} students ({pct}%)</span>
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm text-muted-foreground mt-1">{a.description}</p>
+                        {a.file_url && (
+                          <a href={a.file_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary mt-2 story-link">
+                            <Paperclip className="w-3 h-3" /> Attached file
+                          </a>
+                        )}
+                      </>
                     )}
-                    {a.dueDate && new Date(a.dueDate) < new Date() && (
-                      <p className="text-xs text-muted-foreground mt-1">Closed · {submitted}/{total} submitted ({pct}%)</p>
-                    )}
-                    {a.file_url && (
-                      <a href={a.file_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary mt-2 story-link">
-                        <Paperclip className="w-3 h-3" /> Attached file
-                      </a>
-                    )}
-                    <div className="flex items-center justify-between mt-3 text-xs">
-                      <span className="text-muted-foreground">Due {new Date(a.dueDate).toLocaleDateString()}</span>
+
+                    <div className="flex items-center justify-between mt-3 text-xs gap-2 flex-wrap">
+                      <span className="text-muted-foreground">Due {a.dueDate ? new Date(a.dueDate).toLocaleDateString() : "—"}</span>
                       <Button size="sm" variant="outline" className="glass h-7" onClick={() => loadSubmissions(a.id)}>
                         {subs ? `${submitted}/${total} (${pct}%)` : "Load submissions"}
                       </Button>
                     </div>
+
                     {subs && (
                       <div className="mt-3 grid gap-1.5">
                         {subs.length === 0 && <p className="text-xs text-muted-foreground">No submissions yet</p>}
                         {subs.map((s: any) => {
                           const student = data.students.find((st: any) => st.id === s.student_id);
                           return (
-                            <div key={s.id} className="flex items-center justify-between gap-2 text-xs glass rounded-lg px-2.5 py-1.5">
-                              <span className="truncate">{student?.fullName || s.student_id}</span>
-                              <span className="text-muted-foreground shrink-0">{new Date(s.submitted_at).toLocaleString()}</span>
+                            <div key={s.id} className="glass rounded-lg px-2.5 py-2 text-xs space-y-1">
+                              <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <span className="font-medium truncate">{student?.fullName || "Student"}</span>
+                                <span className="text-muted-foreground">{student?.usn || ""}</span>
+                              </div>
+                              <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <span className="text-muted-foreground">{new Date(s.submitted_at).toLocaleString()}</span>
+                                <Badge className="bg-success/20 text-success border-success/30 h-5">
+                                  <CheckCircle2 className="w-3 h-3 mr-1" /> Submitted
+                                </Badge>
+                              </div>
                               {s.file_url ? (
-                                <a href={s.file_url} target="_blank" rel="noopener noreferrer" className="text-primary inline-flex items-center gap-1">
-                                  <Download className="w-3 h-3" /> File
+                                <a href={s.file_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary">
+                                  <Download className="w-3 h-3" /> View Document
                                 </a>
                               ) : (
-                                <Badge className="bg-success/20 text-success border-success/30 h-5"><CheckCircle2 className="w-3 h-3 mr-1" />Note</Badge>
+                                <span className="text-muted-foreground">No document uploaded{s.note ? ` · ${s.note}` : ""}</span>
                               )}
                             </div>
                           );
