@@ -80,11 +80,19 @@ export function DiscussionBoard() {
             className="glass min-h-[90px]"
             maxLength={1000}
           />
-          <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center justify-between mt-3 gap-3 flex-wrap">
             <span className="text-xs text-muted-foreground">{text.length}/1000</span>
-            <Button onClick={post} disabled={busy} className="gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">
-              <Send className="w-4 h-4 mr-1.5" /> {busy ? "Posting…" : "Post"}
-            </Button>
+            <div className="flex items-center gap-3">
+              {role === "admin" && (
+                <div className="flex items-center gap-2">
+                  <Checkbox id="disc-important" checked={important} onCheckedChange={(v) => setImportant(!!v)} />
+                  <Label htmlFor="disc-important" className="text-xs cursor-pointer">Mark as Important</Label>
+                </div>
+              )}
+              <Button onClick={post} disabled={busy} className="gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">
+                <Send className="w-4 h-4 mr-1.5" /> {busy ? "Posting…" : "Post"}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
