@@ -118,7 +118,22 @@ function Page() {
 
   return (
     <div className="space-y-6 max-w-7xl">
-      <AnnouncementsPanel announcements={(data as any).announcements || []} />
+      <AnnouncementsPanel
+        announcements={[
+          ...((data as any).announcements || []),
+          ...((data as any).comments || [])
+            .filter((c: any) => c.important)
+            .map((c: any) => ({
+              id: `post-${c.id}`,
+              title: "Important discussion post",
+              content: c.text,
+              important: true,
+              created_at: c.createdAt,
+              author_name: c.authorName,
+              author_role: c.authorRole,
+            })),
+        ]}
+      />
 
       <UpcomingSessions sessions={data.sessions as any} hostNameById={hostNames} />
 

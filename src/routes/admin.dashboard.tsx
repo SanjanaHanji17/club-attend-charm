@@ -59,10 +59,6 @@ function Page() {
   const possibleCount = totalStudents * totalSessions;
   const avgAttendance = possibleCount > 0 ? Math.round((presentCount / possibleCount) * 100) : 0;
 
-  const pendingSubmissions =
-    totalAssignments > 0 && totalStudents > 0
-      ? Math.max(0, totalAssignments * totalStudents - data.submissions.length)
-      : 0;
 
   const attendancePerSession = data.sessions.map((s) => {
     const present = data.attendance.filter((a) => a.sessionId === s.id && a.present).length;
@@ -87,19 +83,33 @@ function Page() {
         <p className="text-muted-foreground mt-2 max-w-xl">Live pulse of your coding club.</p>
       </div>
 
-      <AnnouncementsPanel announcements={(data as any).announcements || []} />
+      <AnnouncementsPanel
+        announcements={[
+          ...((data as any).announcements || []),
+          ...((data as any).comments || [])
+            .filter((c: any) => c.important)
+            .map((c: any) => ({
+              id: `post-${c.id}`,
+              title: "Important discussion post",
+              content: c.text,
+              important: true,
+              created_at: c.createdAt,
+              author_name: c.authorName,
+              author_role: c.authorRole,
+            })),
+        ]}
+      />
 
       <UpcomingSessions
         sessions={data.sessions as any}
         hostNameById={Object.fromEntries([...data.students, ...data.admins].map((p: any) => [p.id, p.fullName]))}
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
         <StatCard icon={Users} label="Total Students" value={totalStudents} delay={0} />
         <StatCard icon={CalendarDays} label="Total Sessions" value={totalSessions} delay={60} />
         <StatCard icon={TrendingUp} label="Avg Attendance" value={`${avgAttendance}%`} delay={120} />
-        <StatCard icon={FileText} label="Pending Submissions" value={pendingSubmissions} delay={180} />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4">

@@ -169,6 +169,7 @@ export function useDB<T = LegacyDB>(selector?: (d: LegacyDB) => T): T {
             authorName: author?.full_name || "Unknown",
             authorRole: author?.role || "student",
             text: c.text,
+            important: (c as any).important || false,
             createdAt: c.created_at || ""
           };
         }),

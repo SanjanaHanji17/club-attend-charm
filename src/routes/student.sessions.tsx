@@ -131,8 +131,9 @@ function Page() {
                 </div>
                 <div className="flex flex-wrap gap-3 mt-4 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> {new Date(s.date).toLocaleDateString()} {s.time || ""}</span>
-                  <span className="flex items-center gap-1.5"><User2 className="w-3.5 h-3.5" /> Host: {s.host}</span>
-                  <span className="flex items-center gap-1.5"><Mic className="w-3.5 h-3.5" /> {s.resourcePerson}</span>
+                  {s.resourcePerson && (
+                    <span className="flex items-center gap-1.5"><Mic className="w-3.5 h-3.5" /> Resource person: <span className="text-foreground">{s.resourcePerson}</span></span>
+                  )}
                 </div>
                 {ended && <FeedbackBlock sessionId={s.id} studentId={me.id} />}
               </CardContent>

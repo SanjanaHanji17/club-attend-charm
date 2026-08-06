@@ -7,7 +7,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Send, MessagesSquare, Trash2, Pencil } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Send, MessagesSquare, Trash2, Pencil, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export function DiscussionBoard() {
@@ -15,6 +17,7 @@ export function DiscussionBoard() {
   const data = useDB((d) => d);
   const qc = useQueryClient();
   const [text, setText] = useState("");
+  const [important, setImportant] = useState(false);
   const [busy, setBusy] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
@@ -27,11 +30,14 @@ export function DiscussionBoard() {
     const { error } = await supabase.from("comments").insert({
       author_id: user.id,
       text: text.trim(),
-    });
+      ...(role === "admin" ? { important } : {}),
+    } as any);
     setBusy(false);
     if (error) return toast.error(error.message);
     setText("");
-    toast.success("Posted!");
+    if (important) toast.success("Important post published — everyone will see it on their dashboard");
+    else toast.success("Posted!");
+    setImportant(false);
     qc.invalidateQueries({ queryKey: ["app_data"] });
   };
 
@@ -54,9 +60,10 @@ export function DiscussionBoard() {
   };
 
 
-  const sorted = [...(data.comments || [])].sort(
-    (a: any, b: any) => +new Date(b.createdAt) - +new Date(a.createdAt)
-  );
+  const sorted = [...(data.comments || [])].sort((a: any, b: any) => {
+    if (!!a.important !== !!b.important) return a.important ? -1 : 1;
+    return +new Date(b.createdAt) - +new Date(a.createdAt);
+  });
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -73,11 +80,19 @@ export function DiscussionBoard() {
             className="glass min-h-[90px]"
             maxLength={1000}
           />
-          <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center justify-between mt-3 gap-3 flex-wrap">
             <span className="text-xs text-muted-foreground">{text.length}/1000</span>
-            <Button onClick={post} disabled={busy} className="gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">
-              <Send className="w-4 h-4 mr-1.5" /> {busy ? "Posting…" : "Post"}
-            </Button>
+            <div className="flex items-center gap-3">
+              {role === "admin" && (
+                <div className="flex items-center gap-2">
+                  <Checkbox id="disc-important" checked={important} onCheckedChange={(v) => setImportant(!!v)} />
+                  <Label htmlFor="disc-important" className="text-xs cursor-pointer">Mark as Important</Label>
+                </div>
+              )}
+              <Button onClick={post} disabled={busy} className="gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">
+                <Send className="w-4 h-4 mr-1.5" /> {busy ? "Posting…" : "Post"}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -87,10 +102,10 @@ export function DiscussionBoard() {
           const initials = (c.authorName || "?").split(" ").map((s: string) => s[0]).slice(0, 2).join("");
           const isOwner = c.authorId === user.id;
           const canDelete = isOwner || role === "admin";
-          const canEdit = isOwner || role === "admin";
+          const canEdit = isOwner;
           const editing = editId === c.id;
           return (
-            <Card key={c.id} className="glass border-border/50 hover-lift animate-fade-in-up" style={{ animationDelay: `${i * 50}ms` }}>
+            <Card key={c.id} className={`glass hover-lift animate-fade-in-up ${c.important ? "border-2 border-destructive/50" : "border-border/50"}`} style={{ animationDelay: `${i * 50}ms` }}>
               <CardContent className="p-5 flex gap-3">
                 <Avatar className="w-10 h-10 ring-2 ring-primary/30 shrink-0">
                   <AvatarFallback className="gradient-primary text-primary-foreground text-xs">{initials}</AvatarFallback>
@@ -102,6 +117,9 @@ export function DiscussionBoard() {
                       <Badge className="bg-accent/20 text-accent border-accent/30">Admin</Badge>
                     ) : (
                       <Badge variant="outline" className="glass">Student</Badge>
+                    )}
+                    {c.important && (
+                      <Badge className="bg-destructive/20 text-destructive border-destructive/30"><AlertTriangle className="w-3 h-3 mr-1" /> Important</Badge>
                     )}
                     <span className="text-xs text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</span>
                     <div className="ml-auto flex items-center gap-1">
