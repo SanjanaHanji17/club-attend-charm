@@ -65,12 +65,17 @@ function Page() {
     return { name: s.title.slice(0, 12), present };
   });
 
-  const studentsByDept = Object.entries(
-    data.students.reduce((acc: Record<string, number>, s) => {
-      acc[s.department] = (acc[s.department] || 0) + 1;
+  // Group case/spacing variants of the same department together (CSE / cse / " Cse " -> CSE)
+  // without altering the stored values. Genuinely different codes stay separate.
+  const studentsByDept = Object.values(
+    data.students.reduce((acc: Record<string, { name: string; value: number }>, s) => {
+      const label = normalizeDepartment(s.department) || "Unspecified";
+      const key = label.toLowerCase();
+      if (!acc[key]) acc[key] = { name: label, value: 0 };
+      acc[key].value += 1;
       return acc;
     }, {})
-  ).map(([name, value]) => ({ name, value }));
+  );
 
   return (
     <div className="space-y-6 max-w-7xl">
