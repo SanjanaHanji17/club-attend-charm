@@ -68,7 +68,7 @@ function Page() {
       .update({
         full_name: f.fullName,
         usn: f.usn,
-        department: f.department,
+        department: normalizeDepartment(f.department),
         year: f.year,
         phone: f.phone,
       })
