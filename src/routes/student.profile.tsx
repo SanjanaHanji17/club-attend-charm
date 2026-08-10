@@ -10,7 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Camera } from "lucide-react";
+import { DepartmentField } from "@/components/DepartmentField";
+import { normalizeDepartment } from "@/lib/departments";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/student/profile")({
   component: () => <AuthGate role="student"><DashShell><Page /></DashShell></AuthGate>,
@@ -125,7 +128,7 @@ function Page() {
         <CardContent className="grid md:grid-cols-2 gap-4">
           <div className="space-y-1.5"><Label>Full Name</Label><Input className="glass" value={f.fullName} onChange={(e) => setF({ ...f, fullName: e.target.value })} /></div>
           <div className="space-y-1.5"><Label>USN</Label><Input className="glass" value={f.usn} onChange={(e) => setF({ ...f, usn: e.target.value })} /></div>
-          <div className="space-y-1.5"><Label>Department</Label><Input className="glass" value={f.department} onChange={(e) => setF({ ...f, department: e.target.value })} /></div>
+          <DepartmentField value={f.department} onChange={(v) => setF({ ...f, department: v })} />
           <div className="space-y-1.5"><Label>Class / Year</Label><Input className="glass" value={f.year} onChange={(e) => setF({ ...f, year: e.target.value })} /></div>
           <div className="space-y-1.5"><Label>Phone</Label><Input className="glass" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} /></div>
           <div className="space-y-1.5"><Label>New Password (optional)</Label><Input type="password" className="glass" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Leave blank to keep current" /></div>
