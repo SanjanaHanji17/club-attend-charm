@@ -5,6 +5,7 @@ import { AnnouncementsPanel } from "@/components/AnnouncementsPanel";
 import { UpcomingSessions } from "@/components/UpcomingSessions";
 
 import { useAuth, useDB } from "@/lib/store";
+import { normalizeDepartment } from "@/lib/departments";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, CalendarDays, TrendingUp, FileText, Sparkles, Inbox } from "lucide-react";
 import {
