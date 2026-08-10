@@ -26,12 +26,17 @@ function Page() {
     [s.fullName, s.usn, s.department, s.year].join(" ").toLowerCase().includes(q.toLowerCase())
   );
 
+  const adminList = (data.admins || []).filter((a: any) =>
+    [a.fullName, a.usn, a.department, a.year].join(" ").toLowerCase().includes(q.toLowerCase())
+  );
+
   return (
     <div className="space-y-6 max-w-6xl">
       <div>
         <h1 className="text-3xl font-bold">Students</h1>
         <p className="text-muted-foreground">Manage all registered students.</p>
       </div>
+
       <div className="relative max-w-md">
         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <Input className="glass pl-9" placeholder="Search students…" value={q} onChange={(e) => setQ(e.target.value)} />
