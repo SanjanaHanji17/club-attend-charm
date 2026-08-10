@@ -93,6 +93,42 @@ function Page() {
         })}
         {!list.length && <p className="text-muted-foreground">No students found.</p>}
       </div>
+
+      <div className="pt-2">
+        <h2 className="text-2xl font-bold">Admins &amp; Volunteers</h2>
+        <p className="text-muted-foreground">View-only directory of the club team.</p>
+      </div>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {adminList.map((a: any, i: number) => {
+          const initials = (a.fullName || "A").split(" ").map((x: any) => x[0]).slice(0, 2).join("");
+          return (
+            <Card key={a.id} className="glass border-border/50 hover-lift animate-fade-in-up" style={{ animationDelay: `${i * 40}ms` }}>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-12 h-12 ring-2 ring-primary/30">
+                    {a.avatar && <AvatarImage src={a.avatar} />}
+                    <AvatarFallback className="gradient-primary text-primary-foreground">{initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold truncate">{a.fullName}</p>
+                    <p className="text-xs text-muted-foreground font-mono">{a.usn}</p>
+                  </div>
+                  <span className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-full glass text-muted-foreground">
+                    <ShieldCheck className="w-3 h-3" /> Admin
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
+                  <div className="glass rounded-lg p-2"><p className="text-muted-foreground">Department</p><p className="font-medium">{a.department || "—"}</p></div>
+                  <div className="glass rounded-lg p-2"><p className="text-muted-foreground">Class / Designation</p><p className="font-medium">{a.year || "Volunteer"}</p></div>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-3">Admin profiles are view-only.</p>
+              </CardContent>
+            </Card>
+          );
+        })}
+        {!adminList.length && <p className="text-muted-foreground">No admins found.</p>}
+      </div>
     </div>
   );
+
 }
