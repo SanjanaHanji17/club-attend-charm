@@ -15,6 +15,17 @@ export const deleteStudentById = createServerFn({ method: "POST" })
       .single();
     if (caller?.role !== "admin") throw new Error("Forbidden");
 
+    // Only student accounts may be removed — admins can never delete another admin
+    const { data: target } = await supabaseAdmin
+      .from("profiles")
+      .select("role")
+      .eq("id", data.studentId)
+      .maybeSingle();
+    if (!target) throw new Error("Profile not found");
+    if (target.role !== "student") throw new Error("Forbidden: only student accounts can be removed");
+
+
+
     // Delete dependent rows first (no FK cascade defined)
     await supabaseAdmin.from("attendance").delete().eq("student_id", data.studentId);
     await supabaseAdmin.from("submissions").delete().eq("student_id", data.studentId);

@@ -7,7 +7,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Code2 } from "lucide-react";
 import { registerWithUsn } from "@/lib/supabase-auth";
+import { DepartmentField } from "@/components/DepartmentField";
+import { normalizeDepartment } from "@/lib/departments";
 import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/register")({
   component: RegisterPage,
@@ -134,8 +137,9 @@ function StudentSignup() {
     <form onSubmit={submit} className="grid grid-cols-2 gap-3">
       <div className="col-span-2"><Field label="Full Name" value={f.fullName} onChange={(e: any) => setF({ ...f, fullName: e.target.value })} /></div>
       <Field label="USN" value={f.usn} onChange={(e: any) => setF({ ...f, usn: e.target.value })} />
-      <Field label="Department" value={f.department} onChange={(e: any) => setF({ ...f, department: e.target.value })} placeholder="CSE / ISE..." />
-      <Field label="Phone Number" value={f.phone} onChange={(e: any) => setF({ ...f, phone: e.target.value })} />
+      <DepartmentField value={f.department} onChange={(v) => setF({ ...f, department: v })} />
+      <div className="col-span-2"><Field label="Phone Number" value={f.phone} onChange={(e: any) => setF({ ...f, phone: e.target.value })} /></div>
+
       <div className="col-span-2"><Field label="Password" type="password" value={f.password} onChange={(e: any) => setF({ ...f, password: e.target.value })} /></div>
       <div className="col-span-2 mt-1">
         <Button disabled={loading} type="submit" className="w-full gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">Create account</Button>
@@ -205,8 +209,9 @@ function AdminSignup() {
     <form onSubmit={submit} className="grid grid-cols-2 gap-3">
       <div className="col-span-2"><Field label="Full Name" value={f.fullName} onChange={(e: any) => setF({ ...f, fullName: e.target.value })} /></div>
       <Field label="USN" value={f.usn} onChange={(e: any) => setF({ ...f, usn: e.target.value })} />
-      <Field label="Department" value={f.department} onChange={(e: any) => setF({ ...f, department: e.target.value })} />
-      <Field label="Phone" value={f.phone} onChange={(e: any) => setF({ ...f, phone: e.target.value })} />
+      <DepartmentField value={f.department} onChange={(v) => setF({ ...f, department: v })} />
+      <div className="col-span-2"><Field label="Phone" value={f.phone} onChange={(e: any) => setF({ ...f, phone: e.target.value })} /></div>
+
       <div className="col-span-2"><Field label="Password" type="password" value={f.password} onChange={(e: any) => setF({ ...f, password: e.target.value })} /></div>
       <div className="col-span-2 mt-1">
         <Button disabled={loading} type="submit" className="w-full gradient-primary text-primary-foreground border-0 shadow-glow hover-lift">Register as Admin</Button>
