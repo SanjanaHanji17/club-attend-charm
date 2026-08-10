@@ -115,7 +115,7 @@ function StudentSignup() {
         role: "student",
         full_name: f.fullName.trim(),
         usn: f.usn.trim(),
-        department: f.department.trim(),
+        department: normalizeDepartment(f.department),
         phone: f.phone.trim(),
         qr_code: qr_code
       });
@@ -188,7 +188,7 @@ function AdminSignup() {
         role: "admin",
         full_name: f.fullName.trim(),
         usn: f.usn.trim(),
-        department: f.department.trim(),
+        department: normalizeDepartment(f.department),
         phone: f.phone.trim()
       });
 
