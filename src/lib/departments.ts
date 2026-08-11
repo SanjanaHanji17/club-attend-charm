@@ -17,13 +17,14 @@ export const DEPARTMENT_HELP = "Select your department using the standard short 
 export const DEPARTMENT_OTHER_HELP = "Enter your department using a short code.";
 
 /**
- * Normalizes only formatting differences (extra spaces / capitalization).
- * Never maps one department onto a different one — unknown values are kept
- * as-is (just trimmed and space-collapsed) so existing records are preserved.
+ * Normalizes formatting differences (extra spaces / capitalization). Existing
+ * records are preserved as-is; the only intentional display mapping is "Cs" -> "CSE"
+ * so that legacy records group with the standard code in charts.
  */
 export function normalizeDepartment(value: string | null | undefined): string {
   const cleaned = (value ?? "").trim().replace(/\s+/g, " ");
   if (!cleaned) return "";
+  if (cleaned.toLowerCase() === "cs") return "CSE";
   const match = DEPARTMENTS.find((d) => d.toLowerCase() === cleaned.toLowerCase());
   return match ?? cleaned;
 }
